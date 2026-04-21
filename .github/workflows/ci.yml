@@ -21,7 +21,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm install --include=optional
+        run: npm install --no-package-lock --ignore-scripts
 
       - name: Generate Prisma Client
         run: npx prisma generate
