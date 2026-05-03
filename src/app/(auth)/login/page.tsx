@@ -10,7 +10,12 @@
  * TODO: Style with Tailwind/shadcn UI
  */
 
+import { LoginForm } from "@/components/auth/LoginForm";
+
 export default function LoginPage() {
-  // TODO: Render login page
-  return <div>{/* TODO: Login form */}</div>;
+  return (
+    <div className="flex w-full min-h-screen items-center justify-center p-4 bg-slate-50">
+      <LoginForm />
+    </div>
+  );
 }
