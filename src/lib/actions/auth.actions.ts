@@ -18,7 +18,7 @@ const registerSchema = z
     path: ["confirmPassword"],
   });
 
-export async function registerUser(prevState: unknown, formData: FormData) {
+export async function registerUser(_prevState: unknown, formData: FormData) {
   try {
     const rawData = Object.fromEntries(formData.entries());
     const validatedData = registerSchema.safeParse(rawData);
@@ -52,14 +52,19 @@ export async function registerUser(prevState: unknown, formData: FormData) {
 
     return { success: true };
   } catch (error) {
-    if (error instanceof Error) {
-      return { message: error.message };
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "P2002"
+    ) {
+      return { message: "User with this email already exists" };
     }
     return { message: "Internal server error" };
   }
 }
 
-export async function loginUser(prevState: unknown, formData: FormData) {
+export async function loginUser(_prevState: unknown, formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 

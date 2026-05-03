@@ -16,7 +16,7 @@ export function Navbar() {
   return (
     <header className="h-16 flex items-center justify-between px-4 sm:px-6 bg-white border-b border-slate-200 shrink-0">
       <div className="flex items-center">
-        <button type="button" className="md:hidden p-2 -ml-2 mr-2 text-slate-500 hover:text-slate-900 rounded-md">
+        <button type="button" aria-label="Open navigation menu" className="md:hidden p-2 -ml-2 mr-2 text-slate-500 hover:text-slate-900 rounded-md">
           <Menu className="h-5 w-5" />
         </button>
         <h2 className="text-lg font-semibold text-slate-800">{currentPageList}</h2>
@@ -34,9 +34,9 @@ export function Navbar() {
           />
         </div>
 
-        <button className="p-2 text-slate-400 hover:text-slate-600 relative rounded-full hover:bg-slate-50 transition-colors cursor-pointer">
+        <button aria-label="Notifications" className="p-2 text-slate-400 hover:text-slate-600 relative rounded-full hover:bg-slate-50 transition-colors cursor-pointer">
           <Bell className="h-5 w-5" />
-          <span className="absolute top-1.5 right-1.5 block h-2 w-2 rounded-full bg-blue-600 ring-2 ring-white" />
+          <span aria-hidden="true" className="absolute top-1.5 right-1.5 block h-2 w-2 rounded-full bg-blue-600 ring-2 ring-white" />
         </button>
 
         <div className="h-8 w-px bg-slate-200 mx-2" />
