@@ -1,12 +1,16 @@
 import KanbanCard from "@/components/kanban/KanbanCard";
+import KanbanColumn from "@/components/kanban/KanbanColumn";
 import { mockTasks } from "@/lib/mock-data";
 
 const TestPage = () => {
-  const mockTask = mockTasks[3];
+  const mockTask = mockTasks;
 
   return (
     <div className="p-4">
-      <KanbanCard task={mockTask} />
+      <KanbanColumn
+        column={{ id: "test-column", title: "Test Column" }}
+        tasks={mockTask}
+      />
     </div>
   );
 };
