@@ -20,15 +20,18 @@ const KanbanCard = ({ task }: KanbanCardProps) => {
   return (
     <Card className="w-sm">
       <CardHeader>
-        <div className="kanban-card-top">
-          {task.subjectId && (
+        {task.subjectId && (
+          <div className="flex flex-row items-center justify-between w-full mb-2">
             <Badge variant="outline" className="text-md p-3">
               {task.subjectId.toUpperCase()}
             </Badge>
-          )}
-          <Pen />
-        </div>
-        <CardTitle>{task.title}</CardTitle>
+            <Pen className="size-4 cursor-pointer ml-auto" />
+          </div>
+        )}
+        <CardTitle className="items-center flex">
+          {task.title}
+          {!task.subjectId && <Pen className="size-4 cursor-pointer ml-auto" />}
+        </CardTitle>
         <CardDescription>{task.description}</CardDescription>
       </CardHeader>
 

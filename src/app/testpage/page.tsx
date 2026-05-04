@@ -5,7 +5,7 @@ const TestPage = () => {
   const mockTask = mockTasks[3];
 
   return (
-    <div>
+    <div className="p-4">
       <KanbanCard task={mockTask} />
     </div>
   );
