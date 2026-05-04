@@ -1,5 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// StudyPlanner Database Schema
+// NextAuth.js + Prisma ORM with PostgreSQL
 
 generator client {
   provider = "prisma-client-js"
@@ -10,126 +10,544 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ==========================================
+// NEXTAUTH.JS CORE MODELS
+// ==========================================
+
+/// Links external OAuth providers (like Google or GitHub) to a specific user's profile for seamless authentication.
+/// Each Account connects a user to a third-party authentication service.
 model Account {
+  /// Unique identifier for the account connection (CUID format).
   id                String  @id @default(cuid())
+  
+  /// Foreign key linking to the User this account belongs to.
   userId            String
+  
+  /// Type of authentication account (e.g., "oauth", "email").
   type              String
+  
+  /// Name of the OAuth provider (e.g., "github", "google", "microsoft").
   provider          String
+  
+  /// The user's unique ID from the OAuth provider's system.
   providerAccountId String
+  
+  /// Token used to obtain a new access token when the current one expires.
   refresh_token     String? @db.Text
+  
+  /// Token used to make API requests on behalf of the user with the provider.
   access_token      String? @db.Text
+  
+  /// Unix timestamp indicating when the access token expires.
   expires_at        Int?
+  
+  /// Type of token returned by the provider (e.g., "Bearer", "JWT").
   token_type        String?
+  
+  /// Space-separated list of permissions granted by the user (e.g., "read:user repo").
   scope             String?
+  
+  /// OpenID Connect ID token returned by the provider for additional claims.
   id_token          String? @db.Text
+  
+  /// Session state returned by the provider for OIDC-based flows.
   session_state     String?
 
+  /// Relationship: The User who owns this external account connection.
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
 
+/// Manages active user logins, keeping them authenticated across page reloads until the session expires.
+/// Each Session represents a unique browser login that persists via a secure cookie token.
 model Session {
+  /// Unique identifier for the session (CUID format).
   id           String   @id @default(cuid())
+  
+  /// Secure, cryptographically random string stored in the user's browser cookie for session identification.
+  /// This token is sent with every request to verify the user's logged-in status.
   sessionToken String   @unique
+  
+  /// Foreign key linking to the User who owns this session.
   userId       String
+  
+  /// Date and time when this session login automatically becomes invalid.
+  /// After this time, the user must log in again even if they haven't closed the browser.
   expires      DateTime
+  
+  /// Relationship: The User who owns this login session.
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  darkMode      Boolean   @default(false)
-  accounts      Account[]
-  sessions      Session[]
-  projects      Project[] @relation("UserProjects")
-  subjects      Subject[]
-  tasks         Task[]
-  events        Event[]
-  notes         Note[]
-}
-
+/// Temporarily stores secure tokens used for passwordless magic links or email verification.
+/// These tokens are short-lived and single-use to ensure security during critical authentication flows.
 model VerificationToken {
+  /// Usually the email address the verification link was sent to.
+  /// Acts as part of the unique identifier for tracking which user is verifying.
   identifier String
+  
+  /// The unique, cryptographically secure string sent to the user via email or magic link.
+  /// Users click a link or copy this token to complete verification without entering a password.
   token      String   @unique
+  
+  /// Date and time when this token expires and can no longer be used.
+  /// Typically set to a short window (e.g., 24 hours) to minimize the risk of token misuse.
   expires    DateTime
 
   @@unique([identifier, token])
 }
 
+/// Acts as the central hub for an individual's identity, app preferences, and all their personalized academic data.
+/// The User is the root entity connecting to all other models: subjects, tasks, events, notes, projects, and study sessions.
+model User {
+  /// Unique identifier for the user (CUID format). Immutable primary key.
+  id            String    @id @default(cuid())
+  
+  /// The user's display name (optional). Usually their full name or preferred username.
+  /// Can be updated at any time from their profile settings.
+  name          String?
+  
+  /// The user's email address (required for authentication).
+  /// Must be globally unique to prevent duplicate accounts.
+  /// Can be used for password recovery and notifications.
+  email         String?   @unique
+  
+  /// Timestamp indicating when the user verified their email address.
+  /// Null if the email hasn't been verified yet (e.g., pending email confirmation).
+  emailVerified DateTime?
+  
+  /// URL to the user's profile picture or avatar image.
+  /// Usually provided by OAuth providers (Google, GitHub) or uploaded by the user.
+  /// Can be null if the user hasn't set a profile picture.
+  image         String?
+  
+  /// Hashed password for traditional email/password-based login (optional).
+  /// Only populated if the user registered with email/password instead of OAuth.
+  /// Never stored in plaintext—always uses bcrypt or similar hashing algorithm.
+  password      String?
+  
+  /// User's app-wide preference for dark mode / light mode interface.
+  /// Defaults to false (light mode). User can toggle this in settings.
+  darkMode      Boolean   @default(false)
+
+  // ==================== RELATIONSHIPS ====================
+  
+  /// All external OAuth provider accounts linked to this user.
+  accounts       Account[]
+  
+  /// All active login sessions for this user across different browsers/devices.
+  sessions       Session[]
+  
+  /// All university courses/subjects created or enrolled in by this user.
+  subjects       Subject[]
+  
+  /// All tasks created by this user (personal or within projects).
+  tasks          Task[]
+  
+  /// All calendar events scheduled by this user (lectures, exams, seminars).
+  events         Event[]
+  
+  /// All study notes created by this user.
+  notes          Note[]
+  
+  /// All group project memberships showing which projects this user participates in.
+  projectMembers ProjectMember[]
+  
+  /// All tracked study sessions (time logs) for this user's productivity analytics.
+  studySessions  StudySession[]
+}
+
+
+// ==========================================
+// STUDYPLANNER CORE ENTITIES
+// ==========================================
+
+/// Serves as a collaborative workspace where multiple users can share tasks and notes for group assignments.
+/// Projects enable team collaboration, allowing members with different permission levels (Admin/Member) to work together.
 model Project {
+  /// Unique identifier for the project (CUID format).
   id          String   @id @default(cuid())
+  
+  /// The title of the group project (e.g., "Mobile App Development", "Capstone Project").
+  /// Required and should be descriptive to identify the project at a glance.
   name        String
+  
+  /// Optional detailed description of the project's goals, requirements, or scope.
+  /// Can include markdown formatting for rich text presentation.
+  /// Examples: project objectives, grading rubric, submission guidelines.
   description String?
+  
+  /// Timestamp when the project was first created.
+  /// Automatically set by the database and immutable.
   createdAt   DateTime @default(now())
+  
+  /// Timestamp automatically updated whenever any project field is modified.
+  /// Useful for tracking when project information was last changed.
   updatedAt   DateTime @updatedAt
-  users       User[]   @relation("UserProjects")
-  tasks       Task[]
+
+  // ==================== RELATIONSHIPS ====================
+  
+  /// All users who are members of this project, along with their roles (Admin/Member).
+  members ProjectMember[]
+  
+  /// All tasks that belong to this project.
+  /// Tasks can be shared among team members for collaborative task management.
+  tasks   Task[]
+  
+  /// All notes shared within this project for collaborative study materials.
+  notes   Note[]
 }
 
-model Subject {
-  id        String   @id @default(cuid())
-  name      String
-  credits   Int?
-  color     String?
+/// Defines the explicit relationship and permission levels (Admin vs. Member) between a user and a shared project.
+/// Acts as a join table between User and Project with role-based access control (RBAC).
+model ProjectMember {
+  /// Unique identifier for the project membership entry (CUID format).
+  id        String      @id @default(cuid())
+  
+  /// Foreign key linking to the User in the project.
+  /// When the user is deleted, this membership is automatically removed.
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  tasks     Task[]
-  events    Event[]
+  
+  /// Foreign key linking to the specific Project.
+  /// When the project is deleted, all memberships are automatically removed.
+  projectId String
+  
+  /// The user's role/permission level within this project.
+  /// ADMIN: Can invite/remove members, edit project, delete project.
+  /// MEMBER: Can view project, complete tasks, add notes (read-only project settings).
+  role      ProjectRole @default(MEMBER)
+  
+  /// Timestamp indicating when the user was added to the project.
+  /// Useful for sorting members by join date or tracking project history.
+  joinedAt  DateTime    @default(now())
+
+  // ==================== RELATIONSHIPS ====================
+  
+  /// Relationship: The User participating in the project.
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  /// Relationship: The Project this user is a member of.
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  /// Ensures each user can only be a member of a project once (no duplicate entries).
+  @@unique([userId, projectId])
 }
 
+/// Aggregates all tasks, events, notes, and study logs related to a specific university course or module.
+/// Subjects serve as the organizational hub for academic courses, allowing students to track everything related to a class.
+model Subject {
+  /// Unique identifier for the subject/course (CUID format).
+  id        String   @id @default(cuid())
+  
+  /// The name of the course/subject (e.g., "Data Structures", "Advanced Calculus", "Web Development").
+  /// Required field to identify the course.
+  name      String
+  
+  /// Academic credit value of the course (optional, e.g., 3 credits, 6 ECTS).
+  /// Used for GPA calculations and workload estimation.
+  /// Can be null if the institution doesn't use a credit system.
+  credits   Int?
+  
+  /// Hex color code for visual identification in calendars and task lists.
+  /// Examples: "#FF5733" (red), "#4287f5" (blue), "#42f554" (green).
+  /// Helps users quickly identify which course a task or event belongs to.
+  color     String?
+  
+  /// Foreign key linking this subject to its owner/creator (the student).
+  /// Users can only see/manage their own subjects.
+  userId    String
+  
+  /// Timestamp when the subject was created.
+  /// Automatically set by the database and immutable.
+  createdAt DateTime @default(now())
+  
+  /// Timestamp automatically updated whenever any subject field is modified.
+  /// Tracks the last time the subject details were changed.
+  updatedAt DateTime @updatedAt
+
+  // ==================== RELATIONSHIPS ====================
+  
+  /// Relationship: The User who created and owns this subject.
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  /// All tasks associated with this course (assignments, quizzes, projects, etc.).
+  tasks         Task[]
+  
+  /// All calendar events for this course (lectures, seminars, exams, office hours).
+  events        Event[]
+  
+  /// All study notes and materials organized under this course.
+  notes         Note[]
+  
+  /// All study sessions tracked while studying this specific course.
+  studySessions StudySession[]
+}
+
+/// Represents actionable to-do items with deadlines, priorities, and custom statuses, capable of nesting into sub-tasks.
+/// Tasks can exist independently, be tied to a subject, belong to a project, or even be sub-tasks of other tasks.
 model Task {
-  id          String    @id @default(cuid())
+  /// Unique identifier for the task (CUID format).
+  id          String       @id @default(cuid())
+  
+  /// The main objective/title of the task (e.g., "Complete Math assignment", "Review Chapter 5").
+  /// Required and should be concise but descriptive.
   title       String
+  
+  /// Extended details, instructions, or steps required to complete the task.
+  /// Can include markdown formatting for rich text (bullet points, code blocks, links).
+  /// Examples: submission requirements, acceptance criteria, detailed instructions.
   description String?
-  status      String    @default("TODO")
-  priority    String    @default("MEDIUM")
+  
+  /// The Kanban board column this task belongs to (e.g., "TODO", "IN_PROGRESS", "DONE", "BLOCKED").
+  /// Defaults to "TODO". Can be customized based on team workflow.
+  /// Used for visual task management in Kanban-style boards.
+  status      String       @default("TODO")
+  
+  /// Priority level indicating the urgency or importance of the task.
+  /// LOW: Can be deferred; no immediate deadline.
+  /// MEDIUM: Standard priority; should be completed on schedule (default).
+  /// HIGH: Urgent; heavily weighted or with near deadline.
+  priority    TaskPriority @default(MEDIUM)
+  
+  /// Optional due date and time for completing the task.
+  /// Null if the task has no deadline. Used for sorting and deadline alerts.
+  /// Examples: exam dates, assignment submission deadlines, project milestones.
   deadline    DateTime?
+  
+  /// Foreign key linking to the User who owns/created this task.
+  /// Users can only see tasks they created (unless shared via a project).
+  userId      String
+  
+  /// Optional foreign key if the task belongs to a group project.
+  /// Null for personal tasks. Multiple users can collaborate on project tasks.
+  projectId   String?
+  
+  /// Optional foreign key if the task is tied to a specific course/subject.
+  /// Helps organize tasks by class and track study effort per subject.
+  /// Null for project tasks that aren't tied to a specific course.
+  subjectId   String?
+  
+  /// Optional foreign key linking to another task (makes this a sub-task).
+  /// Null if this is a top-level task. Enables hierarchical task breakdowns.
+  /// Example: Main task "Build login page" → Sub-tasks: "Design UI", "Implement API", "Add tests".
+  parentId    String?
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  projectId String?
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  subjectId String?
-  subject   Subject? @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  // ==================== RELATIONSHIPS ====================
+  
+  /// Relationship: The User who created this task.
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  /// Relationship: The Project this task belongs to (if any).
+  project       Project?      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  /// Relationship: The Subject/Course this task is tied to (if any).
+  subject       Subject?      @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  
+  /// Relationship: The parent task if this is a sub-task.
+  parentTask    Task?         @relation("SubTasks", fields: [parentId], references: [id], onDelete: Cascade)
+  
+  /// All sub-tasks that break down this larger task.
+  /// Enables hierarchical task management for complex assignments.
+  subTasks      Task[]        @relation("SubTasks")
+  
+  /// All study sessions logged while working on this specific task.
+  /// Tracks time spent on individual assignments for productivity metrics.
+  studySessions StudySession[]
 }
 
+/// Maps out the academic timetable by defining fixed or recurring time blocks for lectures, seminars, and exams.
+/// Events represent scheduled calendar entries that occur at specific times, supporting both one-time and repeating patterns.
 model Event {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  startTime   DateTime
-  endTime     DateTime
-  isRecurring Boolean  @default(false)
+  /// Unique identifier for the event (CUID format).
+  id             String   @id @default(cuid())
+  
+  /// Name/title of the event (e.g., "Midterm Exam", "Lecture: Advanced Algorithms", "Office Hours").
+  /// Should be concise and descriptive for calendar display.
+  title          String
+  
+  /// Optional detailed description of the event.
+  /// Can include room number, building location, meeting link, or additional instructions.
+  /// Examples: "Room 302 in STEM Building", "Zoom: https://zoom.us/j/...", "Bring calculator".
+  description    String?
+  
+  /// The exact date and time when the event begins.
+  /// Includes both date and time for precise scheduling.
+  startTime      DateTime
+  
+  /// The exact date and time when the event concludes.
+  /// Must be after startTime to ensure valid event duration.
+  endTime        DateTime
+  
+  /// Boolean flag indicating whether this event repeats on a schedule.
+  /// true: The event recurs according to recurrenceRule (e.g., weekly lectures).
+  /// false: One-time event (e.g., final exam, single guest lecture).
+  isRecurring    Boolean  @default(false)
+  
+  /// Standardized RRULE string (RFC 5545) defining the repetition pattern.
+  /// Only populated if isRecurring is true.
+  /// Examples:
+  /// - "FREQ=WEEKLY;BYDAY=MO,WE,FR" (Mondays, Wednesdays, Fridays)
+  /// - "FREQ=WEEKLY;BYDAY=TU,TH" (Tuesdays and Thursdays)
+  /// - "FREQ=MONTHLY;BYMONTHDAY=15" (15th of each month)
+  recurrenceRule String?
+  
+  /// Foreign key linking the event to its creator (the student/instructor).
+  /// Users only see events they created or are invited to view.
+  userId         String
+  
+  /// Optional foreign key tying the event to a specific course/subject.
+  /// Null for personal events unrelated to courses (e.g., personal appointments).
+  /// Helps organize events by class for a unified course timetable view.
+  subjectId      String?
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  subjectId String?
-  subject   Subject? @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  // ==================== RELATIONSHIPS ====================
+  
+  /// Relationship: The User who created/owns this event.
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  /// Relationship: The Subject/Course this event is associated with (if any).
+  subject Subject? @relation(fields: [subjectId], references: [id], onDelete: Cascade)
 }
 
+/// Stores plaintext markdown or links to external PDFs, keeping study materials neatly organized by subject or project.
+/// Notes serve as the knowledge base for each subject, supporting both inline content and external file references.
 model Note {
-  id      String  @id @default(cuid())
-  title   String
-  content String? @db.Text
-  fileUrl String?
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  /// Unique identifier for the note (CUID format).
+  id        String   @id @default(cuid())
+  
+  /// The title of the document, note, or study material.
+  /// Should be descriptive (e.g., "Lecture Notes - Ch3", "Key Formulas", "Interview Prep").
+  title     String
+  
+  /// Rich text content in Markdown format (optional).
+  /// Supports formatting: **bold**, *italic*, `code`, lists, tables, links, and more.
+  /// Can include LaTeX math expressions for scientific/math notes.
+  /// Examples: course summaries, study guides, exam questions.
+  content   String?  @db.Text
+  
+  /// URL/path to an external file (PDF, Word document, image, etc.) in cloud storage.
+  /// Alternative to inline content—useful for lecture slides, textbook excerpts, research papers.
+  /// Examples: "https://s3.amazonaws.com/notes/ch3.pdf", "gs://bucket/lecture.pdf".
+  /// Can be null if using inline content instead.
+  fileUrl   String?
+  
+  /// Foreign key linking the note to its author/creator.
+  /// Users can only see notes they created (unless shared via a project).
+  userId    String
+  
+  /// Optional foreign key organizing the note under a specific course/subject.
+  /// Null for standalone notes. Helps keep notes organized by class.
+  /// Examples: All notes for "Data Structures" course are linked to that Subject.
+  subjectId String?
+  
+  /// Optional foreign key for sharing notes with a group project.
+  /// Null for personal notes. Multiple project members can see shared notes.
+  /// Enables collaborative note-taking within project teams.
+  projectId String?
+  
+  /// Timestamp when the note was first created.
+  /// Automatically set by the database and immutable.
   createdAt DateTime @default(now())
+  
+  /// Timestamp automatically updated whenever the note content is modified.
+  /// Useful for tracking the last study session that modified these notes.
   updatedAt DateTime @updatedAt
+
+  // ==================== RELATIONSHIPS ====================
+  
+  /// Relationship: The User who created this note.
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  /// Relationship: The Subject/Course this note is organized under (if any).
+  subject Subject? @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  
+  /// Relationship: The Project this note is shared with (if any).
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+/// Logs the start time, end time, and total duration of focused study periods to power productivity analytics.
+/// Each StudySession represents a continuous period of dedicated study time, enabling time tracking and learning analytics.
+model StudySession {
+  /// Unique identifier for the study session (CUID format).
+  id        String   @id @default(cuid())
+  
+  /// The exact date and time when the user started their study timer.
+  /// Marks the beginning of the focused study period.
+  startTime DateTime
+  
+  /// The exact date and time when the user stopped their study timer (optional).
+  /// Null if the study session is currently in progress.
+  /// Once set, the duration is automatically calculated.
+  endTime   DateTime?
+  
+  /// Total time tracked in seconds (calculated upon stopping the timer).
+  /// Null while the study session is active. Automatically computed as: endTime - startTime.
+  /// Examples: 3600 (1 hour), 5400 (1.5 hours), 7200 (2 hours).
+  /// Used for productivity analytics and study time metrics.
+  duration  Int?
+  
+  /// Foreign key linking the study session to the studying user.
+  /// Each study session belongs to exactly one user.
+  userId    String
+  
+  /// Optional foreign key to track which specific course/subject was being studied.
+  /// Null if the study session isn't tied to a particular course.
+  /// Enables per-subject study time analytics (e.g., "I studied 10 hours for Biology").
+  subjectId String?
+  
+  /// Optional foreign key to track time spent on a specific assignment/task.
+  /// Null if studying general material not tied to a task.
+  /// Enables task-level time tracking for workload estimation.
+  /// Example: "I spent 2 hours on the Math project task".
+  taskId    String?
+
+  // ==================== RELATIONSHIPS ====================
+  
+  /// Relationship: The User who recorded this study session.
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  /// Relationship: The Subject/Course being studied (if specified).
+  subject Subject? @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  
+  /// Relationship: The Task/Assignment being worked on (if specified).
+  task    Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+}
+
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+/// Dictates whether a user has administrative control or standard access within a group project.
+/// Defines permission levels for project membership, ensuring appropriate access control.
+enum ProjectRole {
+  /// Administrator: Can invite members, remove members, edit project details, modify all tasks/notes, or delete the project.
+  /// Typically assigned to the project creator. Multiple admins can exist per project.
+  /// Best practice: Each project should have at least one admin.
+  ADMIN
+
+  /// Standard Member: Can view the project, complete tasks, create/edit their own tasks, add notes, and participate in discussions.
+  /// Cannot: Invite/remove members, edit project settings, or delete the project.
+  /// Most users default to this role unless promoted by a project admin.
+  MEMBER
+}
+
+/// Enforces strict priority levels to help users effectively sort and triage their upcoming workload.
+/// Provides a standardized way to indicate task urgency for better time management and focus.
+enum TaskPriority {
+  /// Low Priority: Tasks with no immediate urgency or long-term deadlines.
+  /// Examples: "Read optional chapter", "Optional bonus content", "Explore additional resources".
+  /// These tasks are typically completed after higher-priority items.
+  LOW
+
+  /// Medium Priority: Standard tasks with regular deadlines (default value).
+  /// Examples: "Complete homework assignment", "Study for quiz", "Finish project milestone".
+  /// Most academic tasks fall into this category. Default for newly created tasks.
+  MEDIUM
+
+  /// High Priority: Urgent or heavily weighted assignments with near deadlines.
+  /// Examples: "Final exam tomorrow", "Capstone project due Monday", "Critical project milestone".
+  /// These tasks should be prioritized and completed first. Often tied to high GPA weight.
+  HIGH
 }
