@@ -40,7 +40,7 @@ export async function checkProjectAdmin(
 }
 
 /**
- /* Returns all project IDs the user belongs to.
+ * Returns all project IDs the user belongs to.
  */
 export async function getAllUserProjects(userId: string): Promise<string[]> {
   const memberships = await prisma.projectMember.findMany({

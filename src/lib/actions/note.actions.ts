@@ -49,7 +49,15 @@ export async function createNote(
       return { success: false, message: "Unauthorized" };
     }
 
-    const validatedData = createNoteSchema.parse(input);
+    const validationResult = createNoteSchema.safeParse(input);
+    if (!validationResult.success) {
+      return {
+        success: false,
+        message:
+          "Validation error: " + validationResult.error.issues[0].message,
+      };
+    }
+    const validatedData = validationResult.data;
 
     if (validatedData.projectId) {
       const hasAccess = await checkProjectAccess(
@@ -95,7 +103,16 @@ export async function updateNote(
       return { success: false, message: "Unauthorized" };
     }
 
-    const validatedData = updateNoteSchema.parse(input);
+    const validationResult = updateNoteSchema.safeParse(input);
+    if (!validationResult.success) {
+      return {
+        success: false,
+        message:
+          "Validation error: " + validationResult.error.issues[0].message,
+      };
+    }
+    const validatedData = validationResult.data;
+
     const existingNote = await prisma.note.findUnique({ where: { id } });
 
     if (!existingNote) {

@@ -6,6 +6,7 @@ import { z } from "zod";
 import { ApiResponse, Project, ProjectMember } from "@/types";
 import { revalidatePath } from "next/cache";
 import { checkProjectAdmin } from "../utils/access";
+import { randomBytes } from "crypto";
 
 const createProjectSchema = z.object({
   name: z.string().min(1, "Project name is required"),
@@ -22,7 +23,7 @@ const updateRoleSchema = z.object({
 });
 
 export async function createProject(
-  data: z.infer<typeof createProjectSchema>
+  data: z.infer<typeof createProjectSchema>,
 ): Promise<ApiResponse<Project>> {
   try {
     const session = await auth();
@@ -59,7 +60,7 @@ export async function createProject(
 
 export async function updateProject(
   id: string,
-  data: z.infer<typeof updateProjectSchema>
+  data: z.infer<typeof updateProjectSchema>,
 ): Promise<ApiResponse<Project>> {
   try {
     const session = await auth();
@@ -116,7 +117,9 @@ export async function deleteProject(id: string): Promise<ApiResponse<null>> {
   }
 }
 
-export async function generateProjectCode(id: string): Promise<ApiResponse<string>> {
+export async function generateProjectCode(
+  id: string,
+): Promise<ApiResponse<string>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -128,12 +131,15 @@ export async function generateProjectCode(id: string): Promise<ApiResponse<strin
       return { success: false, message: "Unauthorized: Admin access required" };
     }
 
-    const newCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+    const newCode = randomBytes(4).toString("hex").toUpperCase();
 
     const project = await prisma.project.update({
       where: { id },
       data: { inviteCode: newCode },
     });
+
+    revalidatePath("/dashboard/projects");
+    revalidatePath(`/dashboard/projects/${id}`);
 
     return { success: true, data: project.inviteCode };
   } catch {
@@ -148,8 +154,10 @@ export async function joinProject(code: string): Promise<ApiResponse<Project>> {
       return { success: false, message: "Unauthorized" };
     }
 
+    const normalizedCode = code.trim().toUpperCase();
+
     const project = await prisma.project.findUnique({
-      where: { inviteCode: code },
+      where: { inviteCode: normalizedCode },
     });
 
     if (!project) {
@@ -166,7 +174,10 @@ export async function joinProject(code: string): Promise<ApiResponse<Project>> {
     });
 
     if (existingMember) {
-      return { success: false, message: "You are already a member of this project" };
+      return {
+        success: false,
+        message: "You are already a member of this project",
+      };
     }
 
     await prisma.projectMember.create({
@@ -187,7 +198,7 @@ export async function joinProject(code: string): Promise<ApiResponse<Project>> {
 export async function createProjectMember(
   projectId: string,
   userId: string,
-  role: "ADMIN" | "MEMBER" = "MEMBER"
+  role: "ADMIN" | "MEMBER" = "MEMBER",
 ): Promise<ApiResponse<ProjectMember>> {
   try {
     const session = await auth();
@@ -230,7 +241,7 @@ export async function createProjectMember(
 
 export async function removeProjectMember(
   projectId: string,
-  userIdToRemove: string
+  userIdToRemove: string,
 ): Promise<ApiResponse<null>> {
   try {
     const session = await auth();
@@ -247,14 +258,16 @@ export async function removeProjectMember(
       return { success: false, message: "Cannot remove yourself" };
     }
 
-    await prisma.projectMember.delete({
+    const deleteResult = await prisma.projectMember.deleteMany({
       where: {
-        userId_projectId: {
-          userId: userIdToRemove,
-          projectId,
-        },
+        userId: userIdToRemove,
+        projectId, // Use deleteMany to avoid throwing if not found
       },
     });
+
+    if (deleteResult.count === 0) {
+      return { success: false, message: "Member not found" };
+    }
 
     revalidatePath(`/dashboard/projects/${projectId}`);
     return { success: true };
@@ -266,7 +279,7 @@ export async function removeProjectMember(
 export async function updateProjectMemberRole(
   projectId: string,
   userIdToUpdate: string,
-  newRole: "ADMIN" | "MEMBER"
+  newRole: "ADMIN" | "MEMBER",
 ): Promise<ApiResponse<ProjectMember>> {
   try {
     const session = await auth();
@@ -289,6 +302,19 @@ export async function updateProjectMemberRole(
         success: false,
         message: "Validation error: " + validatedData.error.issues[0].message,
       };
+    }
+
+    const existingMember = await prisma.projectMember.findUnique({
+      where: {
+        userId_projectId: {
+          userId: userIdToUpdate,
+          projectId,
+        },
+      },
+    });
+
+    if (!existingMember) {
+      return { success: false, message: "Member not found" };
     }
 
     const member = await prisma.projectMember.update({
