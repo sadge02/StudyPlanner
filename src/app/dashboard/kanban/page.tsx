@@ -1,3 +1,5 @@
+"use client";
+
 import KanbanBoard from "@/components/kanban/KanbanBoard";
 import { mockColumns, mockTasks } from "@/lib/mock-data";
 

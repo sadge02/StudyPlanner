@@ -10,6 +10,8 @@ import {
 } from "../ui/card";
 import { Calendar, Flag, Pen } from "lucide-react";
 import { Badge } from "../ui/badge";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 type KanbanCardProps = {
   task: Task;
@@ -21,31 +23,50 @@ const priorityColor = {
   LOW: "text-green-500",
 };
 
-// TODO: Add the color coding from design?
 const KanbanCard = ({ task }: KanbanCardProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
+
   return (
-    <Card className="w-xs gap-2">
+    <Card
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="w-xs gap-2 cursor-grab active:cursor-grabbing"
+    >
       <CardHeader>
         {task.subjectId && (
           <div className="flex flex-row items-center justify-between w-full">
             <Badge variant="outline" className="text-xs p-2">
               {task.subjectId.toUpperCase()}
             </Badge>
-            <Pen size={16} className="cursor-pointer ml-auto" />
+            <Pen size={15} className="cursor-pointer ml-auto" />
           </div>
         )}
         <CardTitle className="items-center flex">
-          <Flag size={16} className={`${priorityColor[task.priority]} mr-2`} />
           {task.title}
           {!task.subjectId && (
-            <Pen size={16} className="cursor-pointer ml-auto" />
+            <Pen size={15} className="cursor-pointer ml-auto" />
           )}
         </CardTitle>
         <CardDescription>{task.description}</CardDescription>
       </CardHeader>
 
-      <CardContent>
-        <div className="flex gap-2 text-gray-500">
+      <CardContent className="flex items-center justify-between">
+        <div className="flex gap-2 text-gray-500 text-sm">
           <Calendar size={18} />
           {task.deadline
             ? new Date(task.deadline).toLocaleDateString("en-GB", {
@@ -54,6 +75,7 @@ const KanbanCard = ({ task }: KanbanCardProps) => {
               })
             : "No deadline set"}
         </div>
+        <Flag size={15} className={`ml-auto ${priorityColor[task.priority]}`} />
       </CardContent>
     </Card>
   );
