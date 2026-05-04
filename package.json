@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",
+    "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "^6.19.3",
     "acorn": "^8.16.0",
     "acorn-jsx": "^5.3.2",
@@ -209,6 +210,7 @@
     "queue-microtask": "^1.2.3",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
+    "react-hook-form": "^7.75.0",
     "react-is": "^16.13.1",
     "reflect.getprototypeof": "^1.0.10",
     "regexp.prototype.flags": "^1.5.4",

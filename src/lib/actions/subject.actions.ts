@@ -2,32 +2,17 @@
 
 import { auth } from "../auth";
 import { prisma } from "../db";
-import { z } from "zod";
+import {
+  createSubjectSchema,
+  updateSubjectSchema,
+  type CreateSubjectInput,
+  type UpdateSubjectInput,
+} from "@/schemas";
 import { ApiResponse, Subject } from "@/types";
 import { revalidatePath } from "next/cache";
 
-const createSubjectSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  credits: z
-    .number()
-    .nonnegative("Credits must be non-negative")
-    .optional()
-    .nullable(),
-  color: z.string().optional().nullable(),
-});
-
-const updateSubjectSchema = z.object({
-  name: z.string().min(1, "Name is required").optional(),
-  credits: z
-    .number()
-    .nonnegative("Credits must be non-negative")
-    .optional()
-    .nullable(),
-  color: z.string().optional().nullable(),
-});
-
 export async function createSubject(
-  data: z.infer<typeof createSubjectSchema>,
+  data: CreateSubjectInput,
 ): Promise<ApiResponse<Subject>> {
   try {
     const session = await auth();
@@ -59,7 +44,7 @@ export async function createSubject(
 
 export async function updateSubject(
   id: string,
-  data: z.infer<typeof updateSubjectSchema>,
+  data: UpdateSubjectInput,
 ): Promise<ApiResponse<Subject>> {
   try {
     const session = await auth();
