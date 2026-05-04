@@ -18,27 +18,29 @@ type KanbanCardProps = {
 // TODO: Add the color coding from design?
 const KanbanCard = ({ task }: KanbanCardProps) => {
   return (
-    <Card className="w-sm">
+    <Card className="w-xs gap-2">
       <CardHeader>
         {task.subjectId && (
-          <div className="flex flex-row items-center justify-between w-full mb-2">
-            <Badge variant="outline" className="text-md p-3">
+          <div className="flex flex-row items-center justify-between w-full">
+            <Badge variant="outline" className="text-xs p-2">
               {task.subjectId.toUpperCase()}
             </Badge>
-            <Pen className="size-4 cursor-pointer ml-auto" />
+            <Pen size={15} className="cursor-pointer ml-auto" />
           </div>
         )}
         <CardTitle className="items-center flex">
           {task.title}
-          {!task.subjectId && <Pen className="size-4 cursor-pointer ml-auto" />}
+          {!task.subjectId && (
+            <Pen size={15} className="cursor-pointer ml-auto" />
+          )}
         </CardTitle>
         <CardDescription>{task.description}</CardDescription>
       </CardHeader>
 
       <CardContent>
         {task.deadline && (
-          <div className="flex gap-2 items-center text-gray-500">
-            <Calendar />
+          <div className="flex gap-2 text-gray-500">
+            <Calendar size={18} />
             {task.deadline}
           </div>
         )}
