@@ -392,3 +392,8 @@ export interface Dashboard {
   completedTasks: number;
   studyStats: StudyStats;
 }
+
+export type KanbanColumn = {
+  id: string;
+  title: string;
+};

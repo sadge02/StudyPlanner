@@ -6,16 +6,12 @@ import KanbanColumn from "./KanbanColumn";
 import {
   closestCorners,
   DndContext,
-  DragEndEvent,
-  DragOverEvent,
   DragOverlay,
-  DragStartEvent,
   PointerSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
 import KanbanCard from "./KanbanCard";
-import { arrayMove } from "@dnd-kit/sortable";
 import { useKanbanDnd } from "@/hooks/useKanbanDnd";
 
 type Props = {
