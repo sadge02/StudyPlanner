@@ -2,31 +2,17 @@
 
 import { auth } from "../auth";
 import { prisma } from "../db";
-import { z } from "zod";
+import {
+  createTaskSchema,
+  updateTaskSchema,
+  type CreateTaskInput,
+  type UpdateTaskInput,
+} from "@/schemas";
 import { ApiResponse, Task } from "@/types";
 import { revalidatePath } from "next/cache";
 
-const createTaskSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().optional().nullable(),
-  priority: z.enum(["LOW", "MEDIUM", "HIGH"]).default("MEDIUM"),
-  deadline: z.date().optional().nullable(),
-  subjectId: z.string().optional().nullable(),
-  projectId: z.string().optional().nullable(),
-});
-
-const updateTaskSchema = z.object({
-  title: z.string().min(1, "Title is required").optional(),
-  description: z.string().optional().nullable(),
-  status: z.string().optional(),
-  priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
-  deadline: z.date().optional().nullable(),
-  subjectId: z.string().optional().nullable(),
-  projectId: z.string().optional().nullable(),
-});
-
 export async function createTask(
-  data: z.infer<typeof createTaskSchema>,
+  data: CreateTaskInput,
 ): Promise<ApiResponse<Task>> {
   try {
     const session = await auth();
@@ -60,7 +46,7 @@ export async function createTask(
 
 export async function updateTask(
   id: string,
-  data: z.infer<typeof updateTaskSchema>,
+  data: UpdateTaskInput,
 ): Promise<ApiResponse<Task>> {
   try {
     const session = await auth();
