@@ -186,6 +186,9 @@ model Project {
   /// Useful for tracking when project information was last changed.
   updatedAt   DateTime @updatedAt
 
+  /// Unique invite code for users to join the project as members.
+  inviteCode  String   @unique @default(cuid())
+
   // ==================== RELATIONSHIPS ====================
   
   /// All users who are members of this project, along with their roles (Admin/Member).
