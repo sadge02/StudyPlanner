@@ -60,8 +60,10 @@ export function Navbar({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
   const crumbs = buildBreadcrumbs(pathname);
 
   return (
-    <header className="flex h-16 shrink-0 items-center gap-4 border-slate-200 border-b bg-white px-4 sm:px-6">
-      <div className="flex min-w-0 items-center gap-2">
+    <header
+      className="grid h-16 shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-slate-200 border-b bg-white px-4 sm:grid-cols-[minmax(0,1fr)_28rem_minmax(0,1fr)] sm:gap-6 sm:px-6"
+    >
+      <div className="flex min-w-0 items-center gap-2 sm:justify-self-start">
         <Button
           type="button"
           variant="ghost"
@@ -73,7 +75,7 @@ export function Navbar({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
           <Menu className="size-5 text-slate-500" aria-hidden />
         </Button>
 
-        <nav aria-label="Breadcrumb" className="min-w-0">
+        <nav aria-label="Breadcrumb" className="min-w-0 overflow-hidden">
           <ol className="flex flex-wrap items-center gap-1 text-lg font-semibold text-slate-800 sm:text-base">
             {crumbs.map((crumb, i) => {
               const isLast = i === crumbs.length - 1;
@@ -82,9 +84,9 @@ export function Navbar({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
                   {i > 0 && (
                     <ChevronRight className="size-3.5 shrink-0 text-slate-300" aria-hidden />
                   )}
-                  <li className="min-w-0">
+                  <li className={isLast ? "min-w-0 truncate" : "min-w-0 shrink-0"}>
                     {isLast ? (
-                      <span>{crumb.label}</span>
+                      <span className="block truncate">{crumb.label}</span>
                     ) : (
                       <Link
                         href={crumb.href}
@@ -101,8 +103,8 @@ export function Navbar({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
         </nav>
       </div>
 
-      <div className="mx-4 hidden min-w-0 max-w-xl flex-1 sm:block">
-        <div className="relative">
+      <div className="hidden w-full min-w-0 sm:block sm:w-[28rem] sm:justify-self-center">
+        <div className="relative w-full">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
             <Search className="size-4 text-slate-400" aria-hidden />
           </div>
@@ -120,7 +122,7 @@ export function Navbar({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
         </div>
       </div>
 
-      <div className="ml-auto flex shrink-0 items-center gap-1 sm:space-x-4">
+      <div className="col-start-2 flex shrink-0 items-center justify-self-end gap-1 sm:col-start-3 sm:space-x-4">
         <button
           type="button"
           aria-label="Notifications — coming soon"
