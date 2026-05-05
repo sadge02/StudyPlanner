@@ -1,7 +1,7 @@
 /**
  * Home Page (Landing Page)
  * M4 - Redirect to dashboard or show landing page
- * 
+ *
  * TODO: Check if user is authenticated
  * TODO: Redirect to /dashboard if authenticated
  * TODO: Show landing page with features/signup if not authenticated

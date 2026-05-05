@@ -1,16 +1,69 @@
 "use client";
 
-/**
- * Kanban Board Component
- * M3 - dnd-kit board, column state management
- * 
- * TODO: Implement dnd-kit board layout
- * TODO: Create draggable/droppable columns
- * TODO: Manage column state and task positions
- * TODO: Handle task movement between columns
- */
+import { useState } from "react";
+import { Task, KanbanColumn as Column } from "@/types";
+import KanbanColumn from "./KanbanColumn";
+import {
+  closestCorners,
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import KanbanCard from "./KanbanCard";
+import { useKanbanDnd } from "@/hooks/useKanbanDnd";
 
-export function KanbanBoard() {
-  // TODO: Render Kanban board with columns and cards
-  return null;
-}
+type Props = {
+  initialColumns: Column[];
+  initialTasks: Task[];
+};
+
+const KanbanBoard = ({ initialColumns, initialTasks }: Props) => {
+  const [columns] = useState<Column[]>(initialColumns);
+  const {
+    activeTask,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+    getTasksForColumn,
+  } = useKanbanDnd(initialTasks, columns);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+  );
+
+  return (
+    <DndContext
+      id="kanban-dnd"
+      sensors={sensors}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragOver={handleDragOver}
+      collisionDetection={closestCorners}
+      accessibility={{
+        announcements: {
+          onDragStart: () => "",
+          onDragOver: () => "",
+          onDragEnd: () => "",
+          onDragCancel: () => "",
+        },
+      }}
+    >
+      <div className="flex flex-row gap-4 p-4 overflow-x-auto">
+        {columns.map((column) => (
+          <KanbanColumn
+            key={column.id}
+            column={column}
+            tasks={getTasksForColumn(column.id)}
+          />
+        ))}
+      </div>
+      <DragOverlay>
+        {activeTask ? <KanbanCard task={activeTask} /> : null}
+      </DragOverlay>
+    </DndContext>
+  );
+};
+
+export default KanbanBoard;
