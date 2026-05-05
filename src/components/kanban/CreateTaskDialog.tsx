@@ -84,7 +84,7 @@ const CreateTaskDialog = ({
 
           <div className="flex flex-col gap-1">
             <Textarea
-              placeholder="Description (optional)"
+              placeholder="Add description..."
               {...register("description")}
             />
             {errors.description && (
@@ -94,27 +94,40 @@ const CreateTaskDialog = ({
             )}
           </div>
 
-          <div className="flex flex-col gap-1">
-            <Select
-              defaultValue={"MEDIUM"}
-              onValueChange={(val) => setValue("priority", val as TaskPriority)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={"LOW"}>Low</SelectItem>
-                <SelectItem value={"MEDIUM"}>Medium</SelectItem>
-                <SelectItem value={"HIGH"}>High</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <div className="priority-deadline flex gap-4">
+            <div className="flex items-center gap-2">
+              <label htmlFor="priority" className="text-sm font-medium">
+                Priority
+              </label>
+              <Select
+                defaultValue={"MEDIUM"}
+                name="priority"
+                onValueChange={(val) =>
+                  setValue("priority", val as TaskPriority)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Priority" />
+                </SelectTrigger>
+                <SelectContent className="pl-2">
+                  <SelectItem value={"LOW"}>Low</SelectItem>
+                  <SelectItem value={"MEDIUM"}>Medium</SelectItem>
+                  <SelectItem value={"HIGH"}>High</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="flex flex-col gap-1">
-            <Input type="date" {...register("deadline")} />
-            {errors.deadline && (
-              <p className="text-xs text-red-500">{errors.deadline.message}</p>
-            )}
+            <div className="flex items-center gap-2">
+              <label htmlFor="deadline" className="text-sm font-medium">
+                Deadline
+              </label>
+              <Input type="date" {...register("deadline")} />
+              {errors.deadline && (
+                <p className="text-xs text-red-500">
+                  {errors.deadline.message}
+                </p>
+              )}
+            </div>
           </div>
 
           <DialogFooter>
@@ -125,7 +138,9 @@ const CreateTaskDialog = ({
             >
               Cancel
             </Button>
-            <Button type="submit">{task ? "Save" : "Create"}</Button>
+            <Button className="bg-blue-600" type="submit">
+              {task ? "Save" : "Create"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
