@@ -1,4 +1,3 @@
-import KanbanCard from "@/components/kanban/KanbanCard";
 import KanbanColumn from "@/components/kanban/KanbanColumn";
 import { mockTasks } from "@/lib/mock-data";
 

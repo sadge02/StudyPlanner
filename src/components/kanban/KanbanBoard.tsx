@@ -22,7 +22,6 @@ type Props = {
 const KanbanBoard = ({ initialColumns, initialTasks }: Props) => {
   const [columns] = useState<Column[]>(initialColumns);
   const {
-    tasks,
     activeTask,
     handleDragStart,
     handleDragOver,

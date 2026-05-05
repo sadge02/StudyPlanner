@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Task, KanbanColumn as Column } from "@/types";
-import { DragStartEvent, DragOverEvent, DragEndEvent } from "@dnd-kit/core";
+import { DragStartEvent, DragOverEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 
 export function useKanbanDnd(initialTasks: Task[], columns: Column[]) {
