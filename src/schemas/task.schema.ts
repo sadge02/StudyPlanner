@@ -2,11 +2,11 @@ import { z } from "zod";
 import {
   titleField,
   descriptionField,
-  priorityEnum,
-  cuidOrEmpty,
+  // priorityEnum,
+  // cuidOrEmpty,
 } from "./shared";
 
-export const createTaskFormSchema = z.object({
+export const createTaskSchema = z.object({
   title: titleField,
   description: descriptionField,
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
@@ -16,11 +16,11 @@ export const createTaskFormSchema = z.object({
   parentId: z.string().optional(),
 });
 
-export type CreateTaskFormInput = z.infer<typeof createTaskFormSchema>;
+export type CreateTaskFormInput = z.infer<typeof createTaskSchema>;
 
-export const updateTaskSchema = createTaskFormSchema.partial().extend({
+export const updateTaskSchema = createTaskSchema.partial().extend({
   status: z.string().optional(),
 });
 
-export type CreateTaskInput = z.infer<typeof createTaskFormSchema>;
+export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;

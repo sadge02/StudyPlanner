@@ -2,11 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  CreateTaskInput,
-  createTaskFormSchema,
-  CreateTaskFormInput,
-} from "@/schemas/task.schema";
+import { createTaskSchema, CreateTaskFormInput } from "@/schemas/task.schema";
 import {
   Dialog,
   DialogContent,
@@ -46,7 +42,7 @@ const CreateTaskDialog = ({
     reset,
     formState: { errors },
   } = useForm<CreateTaskFormInput>({
-    resolver: zodResolver(createTaskFormSchema),
+    resolver: zodResolver(createTaskSchema),
     defaultValues: {
       priority: task?.priority ?? "MEDIUM",
       title: task?.title ?? "",
@@ -59,8 +55,10 @@ const CreateTaskDialog = ({
 
   const onSubmit = (data: CreateTaskFormInput) => {
     if (task) {
+      // await updateTask(task.id, data);
       console.log("UPDATING", { ...data, id: task.id });
     } else {
+      // await createTask({ ...data, status: defaultStatus });
       console.log("CREATING", { ...data, status: defaultStatus });
     }
     reset();

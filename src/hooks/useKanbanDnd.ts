@@ -63,6 +63,13 @@ export function useKanbanDnd(initialTasks: Task[], columns: Column[]) {
 
   const handleDragEnd = () => {
     setActiveTask(null);
+
+    // TODO: Uncomment when seeding is ready:
+    // const { active, over } = event;
+    // if (!over) return;
+    // const taskId = active.id as string;
+    // const task = tasks.find((t) => t.id === taskId);
+    // if (task) updateTask(taskId, { status: task.status });
   };
 
   const getTasksForColumn = (columnId: string) =>
