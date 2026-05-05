@@ -8,14 +8,24 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
+import { Button } from "../ui/button";
+import { Plus } from "lucide-react";
+import CreateTaskDialog from "./CreateTaskDialog";
+import { useState } from "react";
 
 type KanbanColumnProps = {
   column: Column;
   tasks: Task[];
+  allowAdd?: boolean;
 };
 
-const KanbanColumn = ({ column, tasks }: KanbanColumnProps) => {
+const KanbanColumn = ({
+  column,
+  tasks,
+  allowAdd = false,
+}: KanbanColumnProps) => {
   const { setNodeRef } = useDroppable({ id: column.id });
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
     // w-fit + min-w-84 ensures the column is at least 21rem (KanbanCard w-xs is 20 rem + 1 rem padding)
@@ -33,13 +43,32 @@ const KanbanColumn = ({ column, tasks }: KanbanColumnProps) => {
       >
         <div
           ref={setNodeRef}
-          className="flex flex-col gap-2 min-h-128 rounded-lg p-2 bg-muted/50"
+          className="flex flex-col gap-2 min-h-32 h-fit rounded-lg p-2 bg-muted/90"
         >
           {tasks.map((task) => (
             <KanbanCard key={task.id} task={task} />
           ))}
         </div>
       </SortableContext>
+
+      {allowAdd && (
+        <>
+          <Button
+            variant="outline"
+            className="w-full mt-1 border-dashed text-muted-foreground"
+            onClick={() => setDialogOpen(true)}
+          >
+            <Plus size={16} />
+            Add task
+          </Button>
+
+          <CreateTaskDialog
+            open={dialogOpen}
+            onOpenChange={setDialogOpen}
+            defaultStatus={column.id}
+          />
+        </>
+      )}
     </div>
   );
 };

@@ -51,11 +51,12 @@ const KanbanBoard = ({ initialColumns, initialTasks }: Props) => {
       }}
     >
       <div className="flex flex-row gap-4 p-4 overflow-x-auto">
-        {columns.map((column) => (
+        {columns.map((column, index) => (
           <KanbanColumn
             key={column.id}
             column={column}
             tasks={getTasksForColumn(column.id)}
+            allowAdd={index === 0}
           />
         ))}
       </div>

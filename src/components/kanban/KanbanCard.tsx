@@ -12,6 +12,8 @@ import { Calendar, Flag, Pen } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useState } from "react";
+import CreateTaskDialog from "./CreateTaskDialog";
 
 type KanbanCardProps = {
   task: Task;
@@ -24,6 +26,8 @@ const priorityColor = {
 };
 
 const KanbanCard = ({ task }: KanbanCardProps) => {
+  const [editOpen, setEditOpen] = useState(false);
+
   const {
     attributes,
     listeners,
@@ -40,44 +44,70 @@ const KanbanCard = ({ task }: KanbanCardProps) => {
   };
 
   return (
-    <Card
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className="w-xs gap-2 cursor-grab active:cursor-grabbing"
-    >
-      <CardHeader>
-        {task.subjectId && (
-          <div className="flex flex-row items-center justify-between w-full">
-            <Badge variant="outline" className="text-xs p-2">
-              {task.subjectId.toUpperCase()}
-            </Badge>
-            <Pen size={15} className="cursor-pointer ml-auto" />
-          </div>
-        )}
-        <CardTitle className="items-center flex">
-          {task.title}
-          {!task.subjectId && (
-            <Pen size={15} className="cursor-pointer ml-auto" />
+    <>
+      <Card
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
+        className="w-xs gap-2 cursor-grab active:cursor-grabbing"
+      >
+        <CardHeader>
+          {task.subjectId && (
+            <div className="flex flex-row items-center justify-between w-full">
+              <Badge variant="outline" className="text-xs p-2">
+                {task.subjectId.toUpperCase()}
+              </Badge>
+              <Pen
+                size={15}
+                className="cursor-pointer ml-auto"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditOpen(true);
+                }}
+              />
+            </div>
           )}
-        </CardTitle>
-        <CardDescription>{task.description}</CardDescription>
-      </CardHeader>
+          <CardTitle className="items-center flex">
+            {task.title}
+            {!task.subjectId && (
+              <Pen
+                size={15}
+                className="cursor-pointer ml-auto"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditOpen(true);
+                }}
+              />
+            )}
+          </CardTitle>
+          <CardDescription>{task.description}</CardDescription>
+        </CardHeader>
 
-      <CardContent className="flex items-center justify-between">
-        <div className="flex gap-2 text-gray-500 text-sm">
-          <Calendar size={18} />
-          {task.deadline
-            ? new Date(task.deadline).toLocaleDateString("en-GB", {
-                day: "numeric",
-                month: "short",
-              })
-            : "No deadline set"}
-        </div>
-        <Flag size={15} className={`ml-auto ${priorityColor[task.priority]}`} />
-      </CardContent>
-    </Card>
+        <CardContent className="flex items-center justify-between">
+          <div className="flex gap-2 text-gray-500 text-sm">
+            <Calendar size={18} />
+            {task.deadline
+              ? new Date(task.deadline).toLocaleDateString("en-GB", {
+                  day: "numeric",
+                  month: "short",
+                })
+              : "No deadline set"}
+          </div>
+          <Flag
+            size={15}
+            className={`ml-auto ${priorityColor[task.priority]}`}
+          />
+        </CardContent>
+      </Card>
+
+      <CreateTaskDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        defaultStatus={task.status}
+        task={task}
+      />
+    </>
   );
 };
 
