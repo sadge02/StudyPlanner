@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 /**
  * Root Layout
  * M4 - Global styles, providers, auth setup
- * 
+ *
  * TODO: Add NextAuth SessionProvider wrapper
  * TODO: Add Tailwind theming provider
  * TODO: Add global error boundary
@@ -37,7 +37,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );
 }
