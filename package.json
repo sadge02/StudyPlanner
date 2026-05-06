@@ -53,7 +53,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "prisma:seed": "prisma db seed"
+    "prisma:seed": "prisma db seed",
     "postinstall": "prisma generate"
   },
   "repository": {
