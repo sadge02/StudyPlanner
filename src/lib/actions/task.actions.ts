@@ -12,6 +12,29 @@ import { ApiResponse, Task } from "@/types";
 import { revalidatePath } from "next/cache";
 import { checkProjectAccess } from "../utils/access";
 
+export async function getUserTasks(): Promise<ApiResponse<Task[]>> {
+  try {
+    // TODO: uncomment
+    // const session = await auth();
+    // if (!session?.user?.id) {
+    //   return { success: false, message: "Unauthorized" };
+    // }
+
+    const tasks = await prisma.task.findMany({
+      where: {
+        // TODO: uncomment: userId: session.user.id,
+        userId: "cmouj5xrh0000bspzc84ez2m8",
+        projectId: null, // personal tasks only
+      },
+      orderBy: { deadline: "asc" },
+    });
+
+    return { success: true, data: tasks as unknown as Task[] };
+  } catch {
+    return { success: false, message: "Failed to fetch tasks" };
+  }
+}
+
 export async function getProjectTasks(
   projectId: string,
 ): Promise<ApiResponse<Task[]>> {
