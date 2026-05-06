@@ -21,7 +21,7 @@ export function AppShell({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
-    <div className="flex h-[100dvh] overflow-hidden bg-slate-50 text-slate-900">
+    <div className="flex h-[100dvh] overflow-hidden bg-background text-foreground">
       <Sidebar
         user={user}
         collapsed={sidebarCollapsed}
