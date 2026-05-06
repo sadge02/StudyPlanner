@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
-import { Calendar, Flag, Pen } from "lucide-react";
+import { Calendar, Flag, Pen, Trash2 } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -17,6 +17,7 @@ import CreateTaskDialog from "./CreateTaskDialog";
 
 type KanbanCardProps = {
   task: Task;
+  onDelete?: (taskId: string) => void;
 };
 
 const priorityColor = {
@@ -25,7 +26,7 @@ const priorityColor = {
   LOW: "text-green-500",
 };
 
-const KanbanCard = ({ task }: KanbanCardProps) => {
+const KanbanCard = ({ task, onDelete }: KanbanCardProps) => {
   const [editOpen, setEditOpen] = useState(false);
 
   const {
@@ -43,6 +44,27 @@ const KanbanCard = ({ task }: KanbanCardProps) => {
     opacity: isDragging ? 0.4 : 1,
   };
 
+  const icons = (
+    <div className="flex gap-2 ml-auto">
+      <Pen
+        size={15}
+        className="cursor-pointer text-muted-foreground hover:text-foreground"
+        onClick={(e) => {
+          e.stopPropagation();
+          setEditOpen(true);
+        }}
+      />
+      <Trash2
+        size={15}
+        className="cursor-pointer text-muted-foreground hover:text-destructive"
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete?.(task.id);
+        }}
+      />
+    </div>
+  );
+
   return (
     <>
       <Card
@@ -53,34 +75,22 @@ const KanbanCard = ({ task }: KanbanCardProps) => {
         className="w-xs gap-2 cursor-grab active:cursor-grabbing"
       >
         <CardHeader>
-          {task.subjectId && (
-            <div className="flex flex-row items-center justify-between w-full">
-              <Badge variant="outline" className="text-xs p-2">
-                {task.subjectId.toUpperCase()}
-              </Badge>
-              <Pen
-                size={15}
-                className="cursor-pointer ml-auto"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setEditOpen(true);
-                }}
-              />
+          {task.subjectId ? (
+            <>
+              <div className="flex flex-row items-center w-full">
+                <Badge variant="outline" className="text-xs p-2">
+                  {task.subjectId.toUpperCase()}
+                </Badge>
+                {icons}
+              </div>
+              <CardTitle>{task.title}</CardTitle>
+            </>
+          ) : (
+            <div className="flex flex-row items-center w-full">
+              <CardTitle>{task.title}</CardTitle>
+              {icons}
             </div>
           )}
-          <CardTitle className="items-center flex">
-            {task.title}
-            {!task.subjectId && (
-              <Pen
-                size={15}
-                className="cursor-pointer ml-auto"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setEditOpen(true);
-                }}
-              />
-            )}
-          </CardTitle>
           <CardDescription>{task.description}</CardDescription>
         </CardHeader>
 

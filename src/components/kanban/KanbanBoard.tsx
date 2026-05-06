@@ -27,6 +27,7 @@ const KanbanBoard = ({ initialColumns, initialTasks }: Props) => {
     handleDragStart,
     handleDragOver,
     handleDragEnd,
+    handleDeleteTask,
     getTasksForColumn,
   } = useKanbanDnd(initialTasks, columns);
 
@@ -72,7 +73,8 @@ const KanbanBoard = ({ initialColumns, initialTasks }: Props) => {
             column={column}
             tasks={getTasksForColumn(column.id)}
             allowAdd={index === 0}
-            onDelete={handleDeleteColumn}
+            onColumnDelete={handleDeleteColumn}
+            onTaskDelete={handleDeleteTask}
           />
         ))}
         <AddColumnButton onAdd={handleAddColumn} />

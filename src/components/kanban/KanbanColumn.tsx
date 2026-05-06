@@ -15,14 +15,16 @@ type KanbanColumnProps = {
   column: Column;
   tasks: Task[];
   allowAdd?: boolean;
-  onDelete?: (columnId: string) => void;
+  onColumnDelete?: (columnId: string) => void;
+  onTaskDelete?: (taskId: string) => void;
 };
 
 const KanbanColumn = ({
   column,
   tasks,
   allowAdd = false,
-  onDelete,
+  onColumnDelete,
+  onTaskDelete,
 }: KanbanColumnProps) => {
   const { setNodeRef } = useDroppable({ id: column.id });
 
@@ -34,11 +36,11 @@ const KanbanColumn = ({
         <Badge variant="secondary" className="text-xs">
           {tasks.length}
         </Badge>
-        {onDelete && (
+        {onColumnDelete && (
           <X
             size={14}
             className="ml-auto cursor-pointer text-muted-foreground hover:text-destructive"
-            onClick={() => onDelete(column.id)}
+            onClick={() => onColumnDelete(column.id)}
           />
         )}
       </div>
@@ -52,7 +54,7 @@ const KanbanColumn = ({
           className="flex flex-col gap-2 min-h-32 h-fit rounded-lg p-2 bg-muted/90"
         >
           {tasks.map((task) => (
-            <KanbanCard key={task.id} task={task} />
+            <KanbanCard key={task.id} task={task} onDelete={onTaskDelete} />
           ))}
         </div>
       </SortableContext>

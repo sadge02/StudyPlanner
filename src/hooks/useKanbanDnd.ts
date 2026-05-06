@@ -72,6 +72,11 @@ export function useKanbanDnd(initialTasks: Task[], columns: Column[]) {
     // if (task) updateTask(taskId, { status: task.status });
   };
 
+  const handleDeleteTask = (taskId: string) => {
+    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    // TODO: await deleteTask(taskId);
+  };
+
   const getTasksForColumn = (columnId: string) =>
     tasks.filter((task) => task.status === columnId);
 
@@ -82,5 +87,6 @@ export function useKanbanDnd(initialTasks: Task[], columns: Column[]) {
     handleDragOver,
     handleDragEnd,
     getTasksForColumn,
+    handleDeleteTask,
   };
 }
