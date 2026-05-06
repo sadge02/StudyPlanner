@@ -3,16 +3,22 @@
 import { Moon, Sun } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { updateUserDarkMode } from "@/lib/actions/user-preferences.actions";
 
 export function ThemeToggle() {
-  const { resolvedTheme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const { status, update } = useSession();
+  const [mounted, setMounted] = useState(false);
 
-  const isDark = resolvedTheme === "dark";
-  const hydrated = resolvedTheme !== undefined;
+  useEffect(() => {
+    queueMicrotask(() => setMounted(true));
+  }, []);
+
+  const current = (resolvedTheme ?? theme) || "light";
+  const isDark = current === "dark";
 
   async function toggleTheme() {
     const nextIsDark = !isDark;
@@ -39,7 +45,7 @@ export function ThemeToggle() {
       size="icon-sm"
       className="shrink-0 text-muted-foreground hover:text-foreground"
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      disabled={!hydrated}
+      disabled={!mounted}
       onClick={() => void toggleTheme()}
     >
       {isDark ? (
