@@ -9,12 +9,16 @@ import { useEffect, useRef } from "react";
  * Does not re-apply on SessionProvider refetches, so a stale JWT cannot
  * override `next-themes` + localStorage after `ThemeToggle` updates the UI.
  */
-export function ThemePreferenceSync() {
+export function ThemePreferenceSync({ skip = false }: { skip?: boolean }) {
   const { setTheme } = useTheme();
   const { data: session, status } = useSession();
   const appliedThemeForUserId = useRef<string | null>(null);
 
   useEffect(() => {
+    if (skip) {
+      appliedThemeForUserId.current = null;
+      return;
+    }
     if (status !== "authenticated") {
       appliedThemeForUserId.current = null;
       return;
@@ -27,7 +31,7 @@ export function ThemePreferenceSync() {
     }
     appliedThemeForUserId.current = session.user.id;
     setTheme(session.user.darkMode ? "dark" : "light");
-  }, [status, session?.user?.id, session?.user?.darkMode, setTheme]);
+  }, [skip, status, session?.user?.id, session?.user?.darkMode, setTheme]);
 
   return null;
 }
