@@ -1,4 +1,4 @@
-"use client";
+// "use client";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,20 +21,17 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Task, TaskPriority } from "@/types";
+import { createTask } from "@/lib/actions/task.actions";
+import { toast } from "sonner";
 
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  defaultStatus: string;
   task?: Task; // optional — if provided, dialog is in edit mode
+  projectId?: string;
 };
 
-const CreateTaskDialog = ({
-  open,
-  onOpenChange,
-  defaultStatus,
-  task,
-}: Props) => {
+const CreateTaskDialog = ({ open, onOpenChange, task, projectId }: Props) => {
   const {
     register,
     handleSubmit,
@@ -53,13 +50,22 @@ const CreateTaskDialog = ({
     },
   });
 
-  const onSubmit = (data: CreateTaskFormInput) => {
+  const onSubmit = async (data: CreateTaskFormInput) => {
     if (task) {
       // await updateTask(task.id, data);
       console.log("UPDATING", { ...data, id: task.id });
     } else {
-      // await createTask({ ...data, status: defaultStatus });
-      console.log("CREATING", { ...data, status: defaultStatus });
+      const response = await createTask({
+        ...data,
+        projectId: projectId,
+        deadline: data.deadline ? new Date(data.deadline).toISOString() : null,
+      });
+
+      if (response.success) {
+        toast.success(`Task ${response.data!.title} created`);
+      } else {
+        toast.error(response.message ?? "Failed to create task");
+      }
     }
     reset();
     onOpenChange(false);

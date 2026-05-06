@@ -17,6 +17,7 @@ type KanbanColumnProps = {
   allowAdd?: boolean;
   onColumnDelete?: (columnId: string) => void;
   onTaskDelete?: (taskId: string) => void;
+  projectId: string;
 };
 
 const KanbanColumn = ({
@@ -25,6 +26,7 @@ const KanbanColumn = ({
   allowAdd = false,
   onColumnDelete,
   onTaskDelete,
+  projectId,
 }: KanbanColumnProps) => {
   const { setNodeRef } = useDroppable({ id: column.id });
 
@@ -59,7 +61,7 @@ const KanbanColumn = ({
         </div>
       </SortableContext>
 
-      {allowAdd && <AddTaskButton defaultStatus={column.id} />}
+      {allowAdd && <AddTaskButton projectId={projectId} />}
     </div>
   );
 };

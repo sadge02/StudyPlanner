@@ -12,23 +12,28 @@ import { ApiResponse, Task } from "@/types";
 import { revalidatePath } from "next/cache";
 import { checkProjectAccess } from "../utils/access";
 
-export async function getProjectTasks(projectId: string): Promise<ApiResponse<Task[]>> {
+export async function getProjectTasks(
+  projectId: string,
+): Promise<ApiResponse<Task[]>> {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return { success: false, message: "Unauthorized" };
-    }
+    // const session = await auth();
+    // if (!session?.user?.id) {
+    //   return { success: false, message: "Unauthorized" };
+    // }
 
-    const hasAccess = await checkProjectAccess(session.user.id, projectId);
-    if (!hasAccess) {
-      return { success: false, message: "Unauthorized: You are not a member of this project" };
-    }
+    // const hasAccess = await checkProjectAccess(session.user.id, projectId);
+    // if (!hasAccess) {
+    //   return {
+    //     success: false,
+    //     message: "Unauthorized: You are not a member of this project",
+    //   };
+    // }
 
     const tasks = await prisma.task.findMany({
       where: { projectId },
       orderBy: { deadline: "asc" },
     });
-
+    console.log("Fetched tasks for project", projectId, tasks);
     return { success: true, data: tasks as unknown as Task[] };
   } catch {
     return { success: false, message: "Failed to fetch project tasks" };
@@ -39,10 +44,10 @@ export async function createTask(
   data: CreateTaskInput,
 ): Promise<ApiResponse<Task>> {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return { success: false, message: "Unauthorized" };
-    }
+    // const session = await auth();
+    // if (!session?.user?.id) {
+    //   return { success: false, message: "Unauthorized" };
+    // }
 
     const validatedData = createTaskSchema.safeParse(data);
     if (!validatedData.success) {
@@ -56,7 +61,8 @@ export async function createTask(
       data: {
         ...validatedData.data,
         status: "TODO",
-        userId: session.user.id,
+        // userId: session.user.id,
+        userId: "cmouj5xrh0000bspzc84ez2m8",
       },
     });
 

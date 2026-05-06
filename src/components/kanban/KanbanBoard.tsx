@@ -18,9 +18,10 @@ import AddColumnButton from "./AddColumnButton";
 type Props = {
   initialColumns: Column[];
   initialTasks: Task[];
+  projectId: string;
 };
 
-const KanbanBoard = ({ initialColumns, initialTasks }: Props) => {
+const KanbanBoard = ({ initialColumns, initialTasks, projectId }: Props) => {
   const [columns, setColumns] = useState<Column[]>(initialColumns);
   const {
     activeTask,
@@ -75,6 +76,7 @@ const KanbanBoard = ({ initialColumns, initialTasks }: Props) => {
             allowAdd={index === 0}
             onColumnDelete={handleDeleteColumn}
             onTaskDelete={handleDeleteTask}
+            projectId={projectId}
           />
         ))}
         <AddColumnButton onAdd={handleAddColumn} />

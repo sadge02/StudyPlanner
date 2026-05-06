@@ -6,10 +6,10 @@ import { Plus } from "lucide-react";
 import CreateTaskDialog from "./CreateTaskDialog";
 
 type Props = {
-  defaultStatus: string;
+  projectId?: string;
 };
 
-const AddTaskButton = ({ defaultStatus }: Props) => {
+const AddTaskButton = ({ projectId }: Props) => {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
@@ -26,7 +26,7 @@ const AddTaskButton = ({ defaultStatus }: Props) => {
       <CreateTaskDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        defaultStatus={defaultStatus}
+        projectId={projectId}
       />
     </>
   );

@@ -114,7 +114,6 @@ const KanbanCard = ({ task, onDelete }: KanbanCardProps) => {
       <CreateTaskDialog
         open={editOpen}
         onOpenChange={setEditOpen}
-        defaultStatus={task.status}
         task={task}
       />
     </>

@@ -78,7 +78,9 @@ export function useKanbanDnd(initialTasks: Task[], columns: Column[]) {
   };
 
   const getTasksForColumn = (columnId: string) =>
-    tasks.filter((task) => task.status === columnId);
+    tasks.filter(
+      (task) => task.status.toLowerCase() === columnId.toLowerCase(),
+    );
 
   return {
     tasks,
