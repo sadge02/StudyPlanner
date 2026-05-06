@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Task, TaskPriority } from "@/types";
-import { createTask } from "@/lib/actions/task.actions";
+import { createTask, updateTask } from "@/lib/actions/task.actions";
 import { toast } from "sonner";
 
 type Props = {
@@ -51,22 +51,32 @@ const CreateTaskDialog = ({ open, onOpenChange, task, projectId }: Props) => {
   });
 
   const onSubmit = async (data: CreateTaskFormInput) => {
+    let response;
     if (task) {
-      // await updateTask(task.id, data);
-      console.log("UPDATING", { ...data, id: task.id });
-    } else {
-      const response = await createTask({
+      response = await updateTask(task.id, {
         ...data,
         projectId: projectId,
         deadline: data.deadline ? new Date(data.deadline).toISOString() : null,
       });
-
-      if (response.success) {
-        toast.success(`Task ${response.data!.title} created`);
-      } else {
-        toast.error(response.message ?? "Failed to create task");
-      }
+    } else {
+      response = await createTask({
+        ...data,
+        projectId: projectId,
+        deadline: data.deadline ? new Date(data.deadline).toISOString() : null,
+      });
     }
+
+    if (response.success) {
+      toast.success(
+        `Task ${response.data!.title} ${task ? "updated" : "created"}`,
+      );
+    } else {
+      toast.error(
+        response.message ??
+          "Failed to " + (task ? "update" : "create") + " task",
+      );
+    }
+
     reset();
     onOpenChange(false);
   };
