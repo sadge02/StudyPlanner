@@ -7,6 +7,45 @@ import bcrypt from "bcryptjs";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
+  callbacks: {
+    ...authConfig.callbacks,
+    async jwt({ token, user, trigger, session }) {
+      if (user) {
+        token.sub = user.id!;
+        const u = user as { darkMode?: boolean };
+        token.darkMode = typeof u.darkMode === "boolean" ? u.darkMode : false;
+      }
+      if (trigger === "update" && session) {
+        const patch = session as {
+          user?: { darkMode?: boolean };
+          darkMode?: unknown;
+        };
+        if (typeof patch.user?.darkMode === "boolean") {
+          token.darkMode = patch.user.darkMode;
+        } else if (typeof patch.darkMode === "boolean") {
+          token.darkMode = patch.darkMode;
+        }
+      }
+      if (token.sub && typeof token.darkMode !== "boolean") {
+        const u = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { darkMode: true },
+        });
+        token.darkMode = u?.darkMode ?? false;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        if (token.sub) {
+          session.user.id = token.sub;
+        }
+        session.user.darkMode =
+          typeof token.darkMode === "boolean" ? token.darkMode : false;
+      }
+      return session;
+    },
+  },
   pages: {
     signIn: "/login",
   },
