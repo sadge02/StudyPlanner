@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Task, KanbanColumn as Column } from "@/types";
-import { DragStartEvent, DragOverEvent } from "@dnd-kit/core";
+import { DragStartEvent, DragOverEvent, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
-import { deleteTask } from "@/lib/actions/task.actions";
+import { deleteTask, updateTask } from "@/lib/actions/task.actions";
 import { toast } from "sonner";
 
 export function useKanbanDnd(initialTasks: Task[], columns: Column[]) {
@@ -63,15 +63,24 @@ export function useKanbanDnd(initialTasks: Task[], columns: Column[]) {
     });
   };
 
-  const handleDragEnd = () => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     setActiveTask(null);
 
     // TODO: Uncomment when seeding is ready:
-    // const { active, over } = event;
-    // if (!over) return;
-    // const taskId = active.id as string;
-    // const task = tasks.find((t) => t.id === taskId);
-    // if (task) updateTask(taskId, { status: task.status });
+    const { active, over } = event;
+    if (!over) return;
+    const taskId = active.id as string;
+    const task = tasks.find((t) => t.id === taskId);
+    console.log("Drag ended for task:", task, " with status: ", task?.status);
+    if (task) {
+      const response = await updateTask(taskId, { status: task.status });
+
+      if (response.success) {
+        toast.success("Task status updated");
+      } else {
+        toast.error("Failed to update task");
+      }
+    }
   };
 
   const handleDeleteTask = async (taskId: string) => {

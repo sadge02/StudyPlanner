@@ -34,7 +34,7 @@ export async function getProjectTasks(
       where: { projectId },
       orderBy: { deadline: "asc" },
     });
-    console.log("Fetched tasks for project", projectId, tasks);
+
     return { success: true, data: tasks as unknown as Task[] };
   } catch {
     return { success: false, message: "Failed to fetch project tasks" };
