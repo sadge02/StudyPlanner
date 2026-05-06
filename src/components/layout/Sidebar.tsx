@@ -2,60 +2,269 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Calendar, Kanban, BookOpen, Presentation, Settings } from "lucide-react";
+import {
+  LayoutDashboard,
+  Calendar,
+  SquareKanban,
+  BookMarked,
+  FolderKanban,
+  StickyNote,
+  LineChart,
+  PanelLeftClose,
+  PanelLeft,
+  X,
+  type LucideIcon,
+} from "lucide-react";
+import { useEffect } from "react";
+import { cn } from "@/lib/utils";
+import type { ShellUser } from "@/components/layout/AppShell";
 
-export function Sidebar() {
-  const pathname = usePathname();
+type NavItem = {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  exact?: boolean;
+};
 
-  const navItems = [
-    { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { label: "Calendar", href: "/dashboard/calendar", icon: Calendar },
-    { label: "Tasks", href: "/dashboard/kanban", icon: Kanban },
-    { label: "Projects", href: "/dashboard/projects", icon: Presentation },
-    { label: "Notes", href: "/dashboard/notes", icon: BookOpen },
-    { label: "Subjects", href: "/dashboard/subjects", icon: BookOpen },
-  ];
+const navItems: NavItem[] = [
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, exact: true },
+  { label: "Calendar", href: "/dashboard/calendar", icon: Calendar },
+  { label: "Tasks", href: "/dashboard/kanban", icon: SquareKanban },
+  { label: "Projects", href: "/dashboard/projects", icon: FolderKanban },
+  { label: "Notes", href: "/dashboard/notes", icon: StickyNote },
+  { label: "Subjects", href: "/dashboard/subjects", icon: BookMarked },
+  { label: "Analytics", href: "/dashboard/analytics", icon: LineChart },
+];
+
+function sidebarInitial(user: ShellUser) {
+  const raw = user.name?.trim()?.[0] || user.email?.[0] || "?";
+  return raw.toUpperCase();
+}
+
+function BookLogo() {
+  return (
+    <div className="shrink-0 rounded-md bg-blue-600 p-1.5 shadow-sm">
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="text-white"
+        aria-hidden
+      >
+        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+      </svg>
+    </div>
+  );
+}
+
+function NavLinkRow({
+  item,
+  pathname,
+  collapsed,
+  onNavigate,
+}: {
+  item: NavItem;
+  pathname: string;
+  collapsed: boolean;
+  onNavigate?: () => void;
+}) {
+  const isActive =
+    item.exact === true
+      ? pathname === item.href
+      : pathname === item.href || pathname.startsWith(`${item.href}/`);
+  const Icon = item.icon;
 
   return (
-    <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col h-full shrink-0 shadow-[4px_0_24px_rgb(0,0,0,0.02)]">
-      <div className="h-16 flex items-center px-6 border-b border-slate-100">
-        <div className="bg-blue-600 p-1.5 rounded-md mr-3">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+    <Link
+      href={item.href}
+      onClick={onNavigate}
+      title={collapsed ? item.label : undefined}
+      aria-current={isActive ? "page" : undefined}
+      className={cn(
+        "flex items-center rounded-md py-2.5 text-sm font-medium transition-colors",
+        collapsed ? "justify-center px-2" : "gap-3 px-3",
+        isActive
+          ? "bg-blue-50 text-blue-700"
+          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+      )}
+    >
+      <Icon
+        className={cn(
+          "h-5 w-5 shrink-0",
+          isActive ? "text-blue-600" : "text-slate-400",
+        )}
+        aria-hidden
+      />
+      <span
+        className={cn(
+          "truncate transition-[opacity,width] duration-200 ease-out",
+          collapsed ? "w-0 overflow-hidden opacity-0" : "opacity-100",
+        )}
+      >
+        {item.label}
+      </span>
+    </Link>
+  );
+}
+
+type SidebarProps = {
+  user: ShellUser;
+  collapsed: boolean;
+  onCollapsedChange: (collapsed: boolean) => void;
+  mobileOpen: boolean;
+  onMobileOpenChange: (open: boolean) => void;
+};
+
+export function Sidebar({
+  user,
+  collapsed,
+  onCollapsedChange,
+  mobileOpen,
+  onMobileOpenChange,
+}: SidebarProps) {
+  const pathname = usePathname();
+
+  useEffect(() => {
+    onMobileOpenChange(false);
+  }, [pathname, onMobileOpenChange]);
+
+  const navSection = (
+    <nav
+      aria-label="Main navigation"
+      className="flex flex-1 flex-col gap-1 overflow-y-auto px-4 py-6"
+    >
+      {!collapsed ? (
+        <div className="mb-4 px-2 font-semibold text-slate-400 text-xs uppercase tracking-wider">
+          Main Menu
         </div>
-        <span className="font-bold text-slate-900 text-lg tracking-tight">StudyPlanner</span>
-      </div>
+      ) : (
+        <span className="sr-only">Main menu</span>
+      )}
+      {navItems.map((item) => (
+        <NavLinkRow
+          key={item.href}
+          item={item}
+          pathname={pathname}
+          collapsed={collapsed}
+          onNavigate={() => onMobileOpenChange(false)}
+        />
+      ))}
+    </nav>
+  );
 
-      <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
-        <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2">Main Menu</div>
-        {navItems.map((item) => {
-          const isActive = pathname === item.href;
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                isActive 
-                  ? "bg-blue-50 text-blue-700" 
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-              }`}
-            >
-              <Icon className={`mr-3 h-5 w-5 ${isActive ? "text-blue-600" : "text-slate-400"}`} />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
+  const collapseToggle = (
+    <div
+      className={cn(
+        "hidden border-slate-100 border-t p-4 md:block",
+        collapsed ? "px-3" : "px-4",
+      )}
+    >
+      <button
+        type="button"
+        onClick={() => onCollapsedChange(!collapsed)}
+        className={cn(
+          "flex w-full items-center rounded-md py-2 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-900",
+          collapsed ? "justify-center px-2" : "justify-start gap-3 px-3",
+        )}
+        aria-expanded={!collapsed}
+        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      >
+        {collapsed ? (
+          <PanelLeft className="h-5 w-5 shrink-0 text-slate-400" aria-hidden />
+        ) : (
+          <>
+            <PanelLeftClose className="h-5 w-5 shrink-0 text-slate-400" aria-hidden />
+            <span>Collapse</span>
+          </>
+        )}
+      </button>
+    </div>
+  );
 
-      <div className="p-4 border-t border-slate-100">
-        <Link
-          href="/dashboard/settings"
-          className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
-        >
-          <Settings className="mr-3 h-5 w-5 text-slate-400" />
-          Settings
-        </Link>
-      </div>
-    </aside>
+  const settingsFooter = (
+    <div
+      className={cn(
+        "border-slate-100 border-t p-4",
+        collapsed ? "flex justify-center px-2" : "px-4",
+      )}
+    >
+      <Link
+        href="/dashboard/settings"
+        onClick={() => onMobileOpenChange(false)}
+        className={cn(
+          "flex items-center rounded-md text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900",
+          collapsed ? "justify-center px-2 py-2" : "gap-3 px-3 py-2",
+        )}
+        title={collapsed ? "Settings" : undefined}
+      >
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-600 text-sm font-semibold text-white">
+          {sidebarInitial(user)}
+        </span>
+        {!collapsed && <span>Settings</span>}
+      </Link>
+    </div>
+  );
+
+  return (
+    <>
+      <div
+        className={cn(
+          "fixed inset-0 z-40 bg-slate-900/35 transition-opacity duration-200 md:hidden",
+          mobileOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0",
+        )}
+        aria-hidden={!mobileOpen}
+        onClick={() => onMobileOpenChange(false)}
+      />
+
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex h-full shrink-0 flex-col bg-white shadow-[4px_0_24px_rgb(0,0,0,0.02)] transition-[transform,width] duration-200 ease-out md:relative md:z-0 md:translate-x-0 md:border-slate-200 md:border-r",
+          "w-[min(16rem,calc(100vw-2rem))]",
+          mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+          collapsed ? "md:w-[4.75rem]" : "md:w-64",
+        )}
+      >
+        <div className="flex h-16 shrink-0 items-center justify-between border-slate-100 border-b px-6 md:hidden">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <BookLogo />
+            <span className="truncate font-bold text-lg text-slate-900 tracking-tight">
+              StudyPlanner
+            </span>
+          </div>
+          <button
+            type="button"
+            className="shrink-0 rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+            aria-label="Close menu"
+            onClick={() => onMobileOpenChange(false)}
+          >
+            <X className="h-5 w-5" aria-hidden />
+          </button>
+        </div>
+
+        <div className="hidden h-16 shrink-0 border-slate-100 border-b px-6 md:flex md:items-center">
+          {collapsed ? (
+            <div className="flex w-full justify-center">
+              <BookLogo />
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <BookLogo />
+              <span className="truncate font-bold text-lg text-slate-900 tracking-tight">
+                StudyPlanner
+              </span>
+            </div>
+          )}
+        </div>
+
+        {navSection}
+        {collapseToggle}
+        {settingsFooter}
+      </aside>
+    </>
   );
 }
