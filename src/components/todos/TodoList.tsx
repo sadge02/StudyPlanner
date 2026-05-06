@@ -5,17 +5,35 @@ import { Task } from "@/types";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { createTask, updateTask } from "@/lib/actions/task.actions";
 import { toast } from "sonner";
-import { CheckSquare } from "lucide-react";
+import { CheckSquare, Calendar, ChevronDown, ChevronUp } from "lucide-react";
 
 type Props = {
   initialTasks: Task[];
 };
 
+const priorityColor: Record<string, string> = {
+  HIGH: "bg-orange-500 text-white hover:bg-orange-500",
+  MEDIUM: "bg-secondary text-secondary-foreground hover:bg-secondary",
+  LOW: "bg-green-100 text-green-700 hover:bg-green-100",
+};
+
 const TodoList = ({ initialTasks }: Props) => {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  const [input, setInput] = useState("");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH">("MEDIUM");
+  const [deadline, setDeadline] = useState("");
   const [showAllCompleted, setShowAllCompleted] = useState(false);
 
   const current = tasks.filter((t) => t.status !== "DONE");
@@ -23,16 +41,14 @@ const TodoList = ({ initialTasks }: Props) => {
   const visibleCompleted = showAllCompleted ? completed : completed.slice(0, 2);
 
   const handleToggle = async (taskId: string) => {
+    const task = tasks.find((t) => t.id === taskId);
+    const newStatus = task?.status === "DONE" ? "TODO" : "DONE";
+
     setTasks((prev) =>
-      prev.map((t) =>
-        t.id === taskId
-          ? { ...t, status: t.status === "DONE" ? "TODO" : "DONE" }
-          : t,
-      ),
+      prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)),
     );
 
-    const response = await updateTask(taskId, { status: "DONE" });
-
+    const response = await updateTask(taskId, { status: newStatus });
     if (response.success) {
       toast.success("Task updated successfully");
     } else {
@@ -41,15 +57,15 @@ const TodoList = ({ initialTasks }: Props) => {
   };
 
   const handleAdd = async () => {
-    if (!input.trim()) return;
-
+    if (!title.trim()) return;
+    console.log("LOG-todo");
     const optimisticTask: Task = {
       id: crypto.randomUUID(),
-      title: input.trim(),
+      title: title.trim(),
+      description: description || null,
       status: "TODO",
-      priority: "MEDIUM",
-      description: null,
-      deadline: null,
+      priority,
+      deadline: deadline ? new Date(deadline) : null,
       userId: "",
       projectId: null,
       subjectId: null,
@@ -57,12 +73,20 @@ const TodoList = ({ initialTasks }: Props) => {
     };
 
     setTasks((prev) => [optimisticTask, ...prev]);
-    setInput("");
+    setTitle("");
+    setDescription("");
+    setPriority("MEDIUM");
+    setDeadline("");
 
+    console.log("LOG-todo1");
+    console.log({ title, priority, description, deadline });
     const response = await createTask({
-      title: input.trim(),
-      priority: "MEDIUM",
+      title: title.trim(),
+      priority,
+      description: description || undefined,
+      deadline: deadline ? new Date(deadline).toISOString() : undefined,
     });
+    console.log("LOG-todo2");
 
     if (response.success) {
       toast.success("Task added successfully");
@@ -73,24 +97,54 @@ const TodoList = ({ initialTasks }: Props) => {
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-3xl">
-      {/* Quick add */}
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <CheckSquare
-            size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-          />
+      {/* Quick add card */}
+      <div className="rounded-lg border bg-card p-4 flex flex-col gap-3">
+        <div className="flex items-center gap-2">
+          <CheckSquare size={18} className="text-muted-foreground shrink-0" />
           <Input
-            className="pl-10 bg-white py-6"
-            placeholder="Add a quick task (e.g. Email advisor about internship)"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
+            className="border-none shadow-none p-0 text-base focus-visible:ring-0 placeholder:text-muted-foreground"
+            placeholder="Task Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
           />
         </div>
-        <Button className="py-6" onClick={handleAdd}>
-          Add Task
-        </Button>
+        <Textarea
+          className="border-none shadow-none p-0 resize-none text-sm focus-visible:ring-0 placeholder:text-muted-foreground min-h-16"
+          placeholder="Add a description..."
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+        <div className="flex items-center gap-4 pt-1">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Priority:</span>
+            <Select
+              value={priority}
+              onValueChange={(v) => setPriority(v as "LOW" | "MEDIUM" | "HIGH")}
+            >
+              <SelectTrigger className="w-32 h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="LOW">Low</SelectItem>
+                <SelectItem value="MEDIUM">Medium</SelectItem>
+                <SelectItem value="HIGH">High</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Deadline:</span>
+            <Input
+              type="date"
+              className="w-40 h-8"
+              value={deadline}
+              onChange={(e) => setDeadline(e.target.value)}
+            />
+          </div>
+          <Button className="ml-auto" onClick={handleAdd}>
+            Add Task
+          </Button>
+        </div>
       </div>
 
       {/* Current tasks */}
@@ -130,7 +184,7 @@ const TodoList = ({ initialTasks }: Props) => {
             >
               {showAllCompleted
                 ? "Hide completed tasks"
-                : `View all completed tasks`}
+                : "View all completed tasks"}
             </button>
           )}
         </div>
@@ -144,15 +198,49 @@ type TodoItemProps = {
   onToggle: (id: string) => void;
 };
 
-// TODO: Add badge, description
 const TodoItem = ({ task, onToggle }: TodoItemProps) => {
+  const [expanded, setExpanded] = useState(false);
   const done = task.status === "DONE";
+  const hasDetails = task.description;
+
   return (
-    <div className="flex items-center gap-3 p-4 rounded-lg border bg-card">
-      <Checkbox checked={done} onCheckedChange={() => onToggle(task.id)} />
-      <span className={done ? "line-through text-muted-foreground" : ""}>
-        {task.title}
-      </span>
+    <div className="rounded-lg border bg-card">
+      <div className="flex items-center gap-3 p-4">
+        <Checkbox checked={done} onCheckedChange={() => onToggle(task.id)} />
+        <span
+          className={`flex-1 font-medium ${done ? "line-through text-muted-foreground" : ""}`}
+        >
+          {task.title}
+        </span>
+        <div className="flex items-center gap-2 ml-auto">
+          <Badge className={priorityColor[task.priority]}>
+            {task.priority}
+          </Badge>
+          {task.deadline && (
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <Calendar size={14} />
+              {new Date(task.deadline).toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "short",
+              })}
+            </div>
+          )}
+          {hasDetails && (
+            <button onClick={() => setExpanded((v) => !v)}>
+              {expanded ? (
+                <ChevronUp size={16} className="text-muted-foreground" />
+              ) : (
+                <ChevronDown size={16} className="text-muted-foreground" />
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+      {expanded && hasDetails && (
+        <div className="px-4 pb-4 pt-0 text-sm text-muted-foreground border-t">
+          <p className="pt-3">{task.description}</p>
+        </div>
+      )}
     </div>
   );
 };

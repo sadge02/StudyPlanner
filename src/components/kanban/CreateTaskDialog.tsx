@@ -123,7 +123,7 @@ const CreateTaskDialog = ({ open, onOpenChange, task, projectId }: Props) => {
                 <SelectTrigger>
                   <SelectValue placeholder="Priority" />
                 </SelectTrigger>
-                <SelectContent className="pl-2">
+                <SelectContent>
                   <SelectItem value={"LOW"}>Low</SelectItem>
                   <SelectItem value={"MEDIUM"}>Medium</SelectItem>
                   <SelectItem value={"HIGH"}>High</SelectItem>

@@ -74,6 +74,7 @@ export async function createTask(
     //   return { success: false, message: "Unauthorized" };
     // }
 
+    console.log("LOG");
     const validatedData = createTaskSchema.safeParse(data);
     if (!validatedData.success) {
       return {
@@ -81,7 +82,7 @@ export async function createTask(
         message: "Validation error: " + validatedData.error.issues[0].message,
       };
     }
-
+    console.log("LOG1");
     const task = await prisma.task.create({
       data: {
         ...validatedData.data,
@@ -90,6 +91,7 @@ export async function createTask(
         userId: "cmouj5xrh0000bspzc84ez2m8",
       },
     });
+    console.log("LOG2", task);
 
     revalidatePath("/dashboard/tasks");
     revalidatePath("/dashboard/kanban");
