@@ -9,7 +9,7 @@ import {
 } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
 import { Button } from "../ui/button";
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import CreateTaskDialog from "./CreateTaskDialog";
 import { useState } from "react";
 
@@ -17,12 +17,14 @@ type KanbanColumnProps = {
   column: Column;
   tasks: Task[];
   allowAdd?: boolean;
+  onDelete?: (columnId: string) => void;
 };
 
 const KanbanColumn = ({
   column,
   tasks,
   allowAdd = false,
+  onDelete,
 }: KanbanColumnProps) => {
   const { setNodeRef } = useDroppable({ id: column.id });
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -35,6 +37,13 @@ const KanbanColumn = ({
         <Badge variant="secondary" className="text-xs">
           {tasks.length}
         </Badge>
+        {onDelete && (
+          <X
+            size={14}
+            className="ml-auto cursor-pointer text-muted-foreground hover:text-destructive"
+            onClick={() => onDelete(column.id)}
+          />
+        )}
       </div>
 
       <SortableContext
