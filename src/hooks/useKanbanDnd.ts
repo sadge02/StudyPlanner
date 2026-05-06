@@ -66,12 +66,11 @@ export function useKanbanDnd(initialTasks: Task[], columns: Column[]) {
   const handleDragEnd = async (event: DragEndEvent) => {
     setActiveTask(null);
 
-    // TODO: Uncomment when seeding is ready:
     const { active, over } = event;
     if (!over) return;
     const taskId = active.id as string;
     const task = tasks.find((t) => t.id === taskId);
-    console.log("Drag ended for task:", task, " with status: ", task?.status);
+
     if (task) {
       const response = await updateTask(taskId, { status: task.status });
 
