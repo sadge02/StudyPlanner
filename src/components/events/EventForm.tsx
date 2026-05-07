@@ -95,7 +95,12 @@ export function EventForm({
     }
 
     startTransition(async () => {
-      const response = await createEvent(payload);
+      const response = await createEvent({
+        ...payload,
+        startTime: new Date(startTime),
+        endTime: new Date(endTime),
+        subjectId: subjectId === "none" ? undefined : subjectId,
+      });
       if (!response.success) {
         setErrorMessage(response.message ?? "Failed to create event");
         return;

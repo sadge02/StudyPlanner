@@ -72,7 +72,13 @@ type CalendarRange = {
   end: Date;
 };
 
-function isValidColor(value: string | null | undefined) {
+function isCalendarBlock(
+  value: CalendarBlock | null,
+): value is CalendarBlock {
+  return value !== null;
+}
+
+function isValidColor(value: string | null | undefined): value is string {
   if (!value) return false;
   return /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(value);
 }
@@ -200,11 +206,10 @@ export function CalendarView({
     };
   });
 
-  const calendarEvents: CalendarBlock[] = useMemo(() => [
-    ...events.flatMap((event) => expandRecurringEvent(event, visibleRange)),
-    ...taskDeadlines
+  const calendarEvents: CalendarBlock[] = useMemo(() => {
+    const deadlineBlocks: CalendarBlock[] = taskDeadlines
       .filter((task) => task.deadline)
-      .map((task) => {
+      .map<CalendarBlock | null>((task) => {
         const dueAt = new Date(task.deadline as Date | string);
         const end = new Date(dueAt.getTime() + 30 * 60 * 1000);
 
@@ -233,12 +238,14 @@ export function CalendarView({
             status: task.status,
           },
         };
-      }),
-  ].filter(Boolean).sort((a, b) => a.start.getTime() - b.start.getTime()) as CalendarBlock[], [
-    events,
-    taskDeadlines,
-    visibleRange,
-  ]);
+      })
+      .filter(isCalendarBlock);
+
+    return [
+      ...events.flatMap((event) => expandRecurringEvent(event, visibleRange)),
+      ...deadlineBlocks,
+    ].sort((a, b) => a.start.getTime() - b.start.getTime());
+  }, [events, taskDeadlines, visibleRange]);
 
   const handleSelectSlot = (slot: SlotInfo) => {
     setSelectedSlot({
@@ -315,7 +322,7 @@ export function CalendarView({
             onSelectEvent={handleSelectEvent}
             onRangeChange={(range) => setVisibleRange(normalizeRange(range))}
             eventPropGetter={(event) => {
-              const subjectColor =
+              const subjectColor: string =
                 event.resource.kind === "task"
                   ? "var(--color-chart-4)"
                   : isValidColor(event.resource.color)
