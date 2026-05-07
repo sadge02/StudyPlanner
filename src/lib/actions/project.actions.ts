@@ -276,6 +276,72 @@ export async function joinProject(code: string): Promise<ApiResponse<Project>> {
   }
 }
 
+export async function leaveProject(projectId: string): Promise<ApiResponse<null>> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const membership = await prisma.projectMember.findUnique({
+      where: {
+        userId_projectId: {
+          userId: session.user.id,
+          projectId,
+        },
+      },
+    });
+
+    if (!membership) {
+      return { success: false, message: "You are not a member of this project" };
+    }
+
+    const members = await prisma.projectMember.findMany({
+      where: { projectId },
+      select: {
+        id: true,
+        userId: true,
+        role: true,
+      },
+    });
+
+    if (members.length === 1) {
+      await prisma.project.delete({
+        where: { id: projectId },
+      });
+
+      revalidatePath("/dashboard/projects");
+      revalidatePath(`/dashboard/projects/${projectId}`);
+      return { success: true };
+    }
+
+    if (membership.role === "ADMIN") {
+      const adminCount = members.filter((member) => member.role === "ADMIN").length;
+      if (adminCount === 1) {
+        return {
+          success: false,
+          message: "Assign another admin before leaving this project",
+        };
+      }
+    }
+
+    await prisma.projectMember.delete({
+      where: {
+        userId_projectId: {
+          userId: session.user.id,
+          projectId,
+        },
+      },
+    });
+
+    revalidatePath("/dashboard/projects");
+    revalidatePath(`/dashboard/projects/${projectId}`);
+    return { success: true };
+  } catch {
+    return { success: false, message: "Failed to leave project" };
+  }
+}
+
 export async function createProjectMember(
   projectId: string,
   userId: string,

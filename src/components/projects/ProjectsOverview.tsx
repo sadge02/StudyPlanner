@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AlertTriangle, Users } from "lucide-react";
 import { differenceInCalendarDays, format } from "date-fns";
 import { TimelineView } from "@/components/calendar/TimelineView";
+import { LeaveProjectButton } from "@/components/projects/LeaveProjectButton";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -87,15 +88,22 @@ export function ProjectsOverview({
         </CardHeader>
 
         <CardContent className="space-y-3 pt-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <CardTitle className="text-xl">{selectedProject.name}</CardTitle>
-            <Badge variant={selectedProject.role === "ADMIN" ? "default" : "outline"}>
-              {selectedProject.role}
-            </Badge>
-            <Badge variant="secondary">
-              {selectedProject.members.length} member
-              {selectedProject.members.length === 1 ? "" : "s"}
-            </Badge>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              <CardTitle className="text-xl">{selectedProject.name}</CardTitle>
+              <Badge variant={selectedProject.role === "ADMIN" ? "default" : "outline"}>
+                {selectedProject.role}
+              </Badge>
+              <Badge variant="secondary">
+                {selectedProject.members.length} member
+                {selectedProject.members.length === 1 ? "" : "s"}
+              </Badge>
+            </div>
+
+            <LeaveProjectButton
+              projectId={selectedProject.id}
+              projectName={selectedProject.name}
+            />
           </div>
 
           <CardDescription className="max-w-3xl text-sm leading-5">
