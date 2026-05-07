@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+
+import { AppProviders } from "@/components/providers/app-providers";
+import { auth } from "@/lib/auth";
+
 import "./globals.css";
 
 const geistSans = Geist({
@@ -21,23 +25,26 @@ export const metadata: Metadata = {
  * Root Layout
  * M4 - Global styles, providers, auth setup
  *
- * TODO: Add NextAuth SessionProvider wrapper
- * TODO: Add Tailwind theming provider
  * TODO: Add global error boundary
  * TODO: Add toast/notification provider
  */
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <AppProviders session={session}>{children}</AppProviders>
+      </body>
     </html>
   );
 }

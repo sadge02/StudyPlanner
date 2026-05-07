@@ -89,14 +89,14 @@ function NavLinkRow({
         "flex items-center rounded-md py-2.5 text-sm font-medium transition-colors",
         collapsed ? "justify-center px-2" : "gap-3 px-3",
         isActive
-          ? "bg-blue-50 text-blue-700"
-          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+          ? "bg-sidebar-accent text-sidebar-accent-foreground"
+          : "text-sidebar-foreground/90 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
       )}
     >
       <Icon
         className={cn(
           "h-5 w-5 shrink-0",
-          isActive ? "text-blue-600" : "text-slate-400",
+          isActive ? "text-sidebar-primary" : "text-muted-foreground",
         )}
         aria-hidden
       />
@@ -139,7 +139,7 @@ export function Sidebar({
       className="flex flex-1 flex-col gap-1 overflow-y-auto px-4 py-6"
     >
       {!collapsed ? (
-        <div className="mb-4 px-2 font-semibold text-slate-400 text-xs uppercase tracking-wider">
+        <div className="mb-4 px-2 font-semibold text-muted-foreground text-xs uppercase tracking-wider">
           Main Menu
         </div>
       ) : (
@@ -160,7 +160,7 @@ export function Sidebar({
   const collapseToggle = (
     <div
       className={cn(
-        "hidden border-slate-100 border-t p-4 md:block",
+        "hidden border-sidebar-border border-t p-4 md:block",
         collapsed ? "px-3" : "px-4",
       )}
     >
@@ -168,17 +168,17 @@ export function Sidebar({
         type="button"
         onClick={() => onCollapsedChange(!collapsed)}
         className={cn(
-          "flex w-full items-center rounded-md py-2 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-900",
+          "flex w-full items-center rounded-md py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
           collapsed ? "justify-center px-2" : "justify-start gap-3 px-3",
         )}
         aria-expanded={!collapsed}
         aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         {collapsed ? (
-          <PanelLeft className="h-5 w-5 shrink-0 text-slate-400" aria-hidden />
+          <PanelLeft className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
         ) : (
           <>
-            <PanelLeftClose className="h-5 w-5 shrink-0 text-slate-400" aria-hidden />
+            <PanelLeftClose className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
             <span>Collapse</span>
           </>
         )}
@@ -189,7 +189,7 @@ export function Sidebar({
   const settingsFooter = (
     <div
       className={cn(
-        "border-slate-100 border-t p-4",
+        "border-sidebar-border border-t p-4",
         collapsed ? "flex justify-center px-2" : "px-4",
       )}
     >
@@ -197,12 +197,12 @@ export function Sidebar({
         href="/dashboard/settings"
         onClick={() => onMobileOpenChange(false)}
         className={cn(
-          "flex items-center rounded-md text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900",
+          "flex items-center rounded-md text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
           collapsed ? "justify-center px-2 py-2" : "gap-3 px-3 py-2",
         )}
         title={collapsed ? "Settings" : undefined}
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-600 text-sm font-semibold text-white">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
           {sidebarInitial(user)}
         </span>
         {!collapsed && <span>Settings</span>}
@@ -214,7 +214,7 @@ export function Sidebar({
     <>
       <div
         className={cn(
-          "fixed inset-0 z-40 bg-slate-900/35 transition-opacity duration-200 md:hidden",
+          "fixed inset-0 z-40 bg-black/50 transition-opacity duration-200 md:hidden",
           mobileOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0",
         )}
         aria-hidden={!mobileOpen}
@@ -223,22 +223,22 @@ export function Sidebar({
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex h-full shrink-0 flex-col bg-white shadow-[4px_0_24px_rgb(0,0,0,0.02)] transition-[transform,width] duration-200 ease-out md:relative md:z-0 md:translate-x-0 md:border-slate-200 md:border-r",
+          "fixed inset-y-0 left-0 z-50 flex h-full shrink-0 flex-col border-sidebar-border bg-sidebar text-sidebar-foreground shadow-[4px_0_24px_rgb(0,0,0,0.06)] transition-[transform,width] duration-200 ease-out md:relative md:z-0 md:translate-x-0 dark:shadow-[4px_0_24px_rgb(0,0,0,0.2)] md:border-r",
           "w-[min(16rem,calc(100vw-2rem))]",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
           collapsed ? "md:w-[4.75rem]" : "md:w-64",
         )}
       >
-        <div className="flex h-16 shrink-0 items-center justify-between border-slate-100 border-b px-6 md:hidden">
+        <div className="flex h-16 shrink-0 items-center justify-between border-sidebar-border border-b px-6 md:hidden">
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <BookLogo />
-            <span className="truncate font-bold text-lg text-slate-900 tracking-tight">
+            <span className="truncate font-bold text-lg text-sidebar-foreground tracking-tight">
               StudyPlanner
             </span>
           </div>
           <button
             type="button"
-            className="shrink-0 rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+            className="shrink-0 rounded-md p-2 text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
             aria-label="Close menu"
             onClick={() => onMobileOpenChange(false)}
           >
@@ -246,7 +246,7 @@ export function Sidebar({
           </button>
         </div>
 
-        <div className="hidden h-16 shrink-0 border-slate-100 border-b px-6 md:flex md:items-center">
+        <div className="hidden h-16 shrink-0 border-sidebar-border border-b px-6 md:flex md:items-center">
           {collapsed ? (
             <div className="flex w-full justify-center">
               <BookLogo />
@@ -254,7 +254,7 @@ export function Sidebar({
           ) : (
             <div className="flex items-center gap-3">
               <BookLogo />
-              <span className="truncate font-bold text-lg text-slate-900 tracking-tight">
+              <span className="truncate font-bold text-lg text-sidebar-foreground tracking-tight">
                 StudyPlanner
               </span>
             </div>
