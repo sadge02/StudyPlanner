@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Task, KanbanColumn as Column } from "@/types";
 import KanbanColumn from "./KanbanColumn";
 import {
@@ -13,7 +12,6 @@ import {
 } from "@dnd-kit/core";
 import KanbanCard from "./KanbanCard";
 import { useKanbanDnd } from "@/hooks/useKanbanDnd";
-import AddColumnButton from "./AddColumnButton";
 
 type Props = {
   initialColumns: Column[];
@@ -22,7 +20,6 @@ type Props = {
 };
 
 const KanbanBoard = ({ initialColumns, initialTasks, projectId }: Props) => {
-  const [columns, setColumns] = useState<Column[]>(initialColumns);
   const {
     activeTask,
     handleDragStart,
@@ -30,25 +27,11 @@ const KanbanBoard = ({ initialColumns, initialTasks, projectId }: Props) => {
     handleDragEnd,
     handleDeleteTask,
     getTasksForColumn,
-  } = useKanbanDnd(initialTasks, columns);
+  } = useKanbanDnd(initialTasks, initialColumns);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
-
-  const handleAddColumn = (name: string) => {
-    const newColumn = {
-      id: name.toLowerCase().replace(/\s+/g, "-"),
-      title: name,
-    };
-    setColumns((prev) => [...prev, newColumn]);
-    // TODO: await createStatus(name);
-  };
-
-  const handleDeleteColumn = (columnId: string) => {
-    setColumns((prev) => prev.filter((c) => c.id !== columnId));
-    // TODO: await deleteStatus(columnId);
-  };
 
   return (
     <DndContext
@@ -68,18 +51,16 @@ const KanbanBoard = ({ initialColumns, initialTasks, projectId }: Props) => {
       }}
     >
       <div className="flex flex-row gap-4 p-4 overflow-x-auto items-start">
-        {columns.map((column, index) => (
+        {initialColumns.map((column, index) => (
           <KanbanColumn
             key={column.id}
             column={column}
             tasks={getTasksForColumn(column.id)}
             allowAdd={index === 0}
-            onColumnDelete={handleDeleteColumn}
             onTaskDelete={handleDeleteTask}
             projectId={projectId}
           />
         ))}
-        <AddColumnButton onAdd={handleAddColumn} />
       </div>
 
       <DragOverlay>

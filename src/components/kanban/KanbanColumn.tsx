@@ -9,13 +9,11 @@ import {
 } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
 import AddTaskButton from "./AddTaskButton";
-import { X } from "lucide-react";
 
 type KanbanColumnProps = {
   column: Column;
   tasks: Task[];
   allowAdd?: boolean;
-  onColumnDelete?: (columnId: string) => void;
   onTaskDelete?: (taskId: string) => void;
   projectId: string;
 };
@@ -24,7 +22,6 @@ const KanbanColumn = ({
   column,
   tasks,
   allowAdd = false,
-  onColumnDelete,
   onTaskDelete,
   projectId,
 }: KanbanColumnProps) => {
@@ -38,13 +35,6 @@ const KanbanColumn = ({
         <Badge variant="secondary" className="text-xs">
           {tasks.length}
         </Badge>
-        {onColumnDelete && (
-          <X
-            size={14}
-            className="ml-auto cursor-pointer text-muted-foreground hover:text-destructive"
-            onClick={() => onColumnDelete(column.id)}
-          />
-        )}
       </div>
 
       <SortableContext

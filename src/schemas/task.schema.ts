@@ -1,10 +1,5 @@
 import { z } from "zod";
-import {
-  titleField,
-  descriptionField,
-  // priorityEnum,
-  // cuidOrEmpty,
-} from "./shared";
+import { titleField, descriptionField } from "./shared";
 
 export const createTaskSchema = z.object({
   title: titleField,
