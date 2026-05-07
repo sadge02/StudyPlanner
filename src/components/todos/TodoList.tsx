@@ -14,9 +14,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { createTask, updateTask } from "@/lib/actions/task.actions";
+import { createTask, deleteTask, updateTask } from "@/lib/actions/task.actions";
 import { toast } from "sonner";
-import { CheckSquare, Calendar, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  CheckSquare,
+  Calendar,
+  ChevronDown,
+  ChevronUp,
+  Trash2,
+} from "lucide-react";
 
 type Props = {
   initialTasks: Task[];
@@ -53,6 +59,17 @@ const TodoList = ({ initialTasks }: Props) => {
       toast.success("Task updated successfully");
     } else {
       toast.error(response.message ?? "Failed to update task");
+    }
+  };
+
+  const handleDelete = async (taskId: string) => {
+    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+
+    const response = await deleteTask(taskId);
+    if (response.success) {
+      toast.success("Task deleted");
+    } else {
+      toast.error(response.message ?? "Failed to delete task");
     }
   };
 
@@ -159,7 +176,12 @@ const TodoList = ({ initialTasks }: Props) => {
           <p className="text-sm text-muted-foreground">No pending tasks.</p>
         )}
         {current.map((task) => (
-          <TodoItem key={task.id} task={task} onToggle={handleToggle} />
+          <TodoItem
+            key={task.id}
+            task={task}
+            onToggle={handleToggle}
+            onDelete={handleDelete}
+          />
         ))}
       </div>
 
@@ -175,7 +197,12 @@ const TodoList = ({ initialTasks }: Props) => {
             </span>
           </div>
           {visibleCompleted.map((task) => (
-            <TodoItem key={task.id} task={task} onToggle={handleToggle} />
+            <TodoItem
+              key={task.id}
+              task={task}
+              onToggle={handleToggle}
+              onDelete={handleDelete}
+            />
           ))}
           {completed.length > 2 && (
             <button
@@ -196,9 +223,10 @@ const TodoList = ({ initialTasks }: Props) => {
 type TodoItemProps = {
   task: Task;
   onToggle: (id: string) => void;
+  onDelete: (id: string) => void;
 };
 
-const TodoItem = ({ task, onToggle }: TodoItemProps) => {
+const TodoItem = ({ task, onToggle, onDelete }: TodoItemProps) => {
   const [expanded, setExpanded] = useState(false);
   const done = task.status === "DONE";
   const hasDetails = task.description;
@@ -234,6 +262,11 @@ const TodoItem = ({ task, onToggle }: TodoItemProps) => {
               )}
             </button>
           )}
+          <Trash2
+            size={15}
+            className="cursor-pointer text-muted-foreground hover:text-destructive"
+            onClick={() => onDelete(task.id)}
+          />
         </div>
       </div>
       {expanded && hasDetails && (
