@@ -8,8 +8,39 @@ import {
   type CreateEventInput,
   type UpdateEventInput,
 } from "@/schemas";
-import { ApiResponse, Event } from "@/types";
+import { ApiResponse, Event, EventWithSubject } from "@/types";
 import { revalidatePath } from "next/cache";
+
+export async function getEvents(): Promise<ApiResponse<EventWithSubject[]>> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const events = await prisma.event.findMany({
+      where: { userId: session.user.id },
+      include: {
+        subject: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+            credits: true,
+            userId: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
+      orderBy: { startTime: "asc" },
+    });
+
+    return { success: true, data: events as EventWithSubject[] };
+  } catch {
+    return { success: false, message: "Failed to fetch events" };
+  }
+}
 
 export async function createEvent(
   data: CreateEventInput,

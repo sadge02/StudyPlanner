@@ -1,16 +1,28 @@
-/**
- * Calendar Page
- * M4 - Calendar page
- * 
- * TODO: Fetch all user events
- * TODO: Render CalendarView component
- * TODO: Add view toggle (month, week, day, agenda)
- * TODO: Implement event creation on click
- * TODO: Show event details modal
- * TODO: Optional: Add TimelineView toggle
- */
+import { CalendarView } from "@/components/calendar/CalendarView";
+import { getEvents } from "@/lib/actions/event.actions";
 
-export default function CalendarPage() {
-  // TODO: Render calendar page
-  return <div>{/* TODO: Calendar view */}</div>;
+export default async function CalendarPage() {
+  const eventsResponse = await getEvents();
+  const events = eventsResponse.data ?? [];
+
+  return (
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <h1 className="font-serif text-3xl font-semibold tracking-tight">
+          Calendar
+        </h1>
+        <p className="max-w-2xl text-sm text-muted-foreground">
+          Your scheduled lectures, exams, study blocks, and deadlines in one
+          place.
+        </p>
+      </div>
+
+      <CalendarView
+        events={events}
+        errorMessage={
+          eventsResponse.success ? undefined : eventsResponse.message
+        }
+      />
+    </div>
+  );
 }
