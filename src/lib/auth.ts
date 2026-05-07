@@ -12,6 +12,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token?.id) {
+        session.user.id = token.id as string;
+      }
+      return session;
+    },
+  },
   providers: [
     ...authConfig.providers,
     CredentialsProvider({
@@ -47,6 +61,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           credentials.password as string,
           user.password,
         );
+
+        console.log("PICO ", user);
 
         if (!isPasswordValid) {
           throw new Error("Invalid credentials");

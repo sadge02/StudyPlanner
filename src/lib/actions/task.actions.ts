@@ -14,16 +14,14 @@ import { checkProjectAccess } from "../utils/access";
 
 export async function getUserTasks(): Promise<ApiResponse<Task[]>> {
   try {
-    // TODO: uncomment
-    // const session = await auth();
-    // if (!session?.user?.id) {
-    //   return { success: false, message: "Unauthorized" };
-    // }
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
 
     const tasks = await prisma.task.findMany({
       where: {
-        // TODO: uncomment: userId: session.user.id,
-        userId: "cmouj5xrh0000bspzc84ez2m8",
+        userId: session.user.id,
         projectId: null, // personal tasks only
       },
       orderBy: { deadline: "asc" },
@@ -39,19 +37,18 @@ export async function getProjectTasks(
   projectId: string,
 ): Promise<ApiResponse<Task[]>> {
   try {
-    // TODO: uncomment
-    // const session = await auth();
-    // if (!session?.user?.id) {
-    //   return { success: false, message: "Unauthorized" };
-    // }
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
 
-    // const hasAccess = await checkProjectAccess(session.user.id, projectId);
-    // if (!hasAccess) {
-    //   return {
-    //     success: false,
-    //     message: "Unauthorized: You are not a member of this project",
-    //   };
-    // }
+    const hasAccess = await checkProjectAccess(session.user.id, projectId);
+    if (!hasAccess) {
+      return {
+        success: false,
+        message: "Unauthorized: You are not a member of this project",
+      };
+    }
 
     const tasks = await prisma.task.findMany({
       where: { projectId },
@@ -68,13 +65,11 @@ export async function createTask(
   data: CreateTaskInput,
 ): Promise<ApiResponse<Task>> {
   try {
-    // TODO: uncomment
-    // const session = await auth();
-    // if (!session?.user?.id) {
-    //   return { success: false, message: "Unauthorized" };
-    // }
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
 
-    console.log("LOG");
     const validatedData = createTaskSchema.safeParse(data);
     if (!validatedData.success) {
       return {
@@ -82,16 +77,14 @@ export async function createTask(
         message: "Validation error: " + validatedData.error.issues[0].message,
       };
     }
-    console.log("LOG1");
+
     const task = await prisma.task.create({
       data: {
         ...validatedData.data,
         status: "TODO",
-        // TODO: uncomment: userId: session.user.id,
-        userId: "cmouj5xrh0000bspzc84ez2m8",
+        userId: session.user.id,
       },
     });
-    console.log("LOG2", task);
 
     revalidatePath("/dashboard/tasks");
     revalidatePath("/dashboard/kanban");
@@ -106,11 +99,10 @@ export async function updateTask(
   data: UpdateTaskInput,
 ): Promise<ApiResponse<Task>> {
   try {
-    // TODO: uncomment
-    // const session = await auth();
-    // if (!session?.user?.id) {
-    //   return { success: false, message: "Unauthorized" };
-    // }
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
 
     const validatedData = updateTaskSchema.safeParse(data);
     if (!validatedData.success) {
@@ -121,8 +113,7 @@ export async function updateTask(
     }
 
     const existingTask = await prisma.task.findUnique({ where: { id } });
-    // TODO: uncomment if (!existingTask || existingTask.userId !== session.user.id) {
-    if (!existingTask || existingTask.userId !== "cmouj5xrh0000bspzc84ez2m8") {
+    if (!existingTask || existingTask.userId !== session.user.id) {
       return { success: false, message: "Task not found or unauthorized" };
     }
 
@@ -141,15 +132,13 @@ export async function updateTask(
 
 export async function deleteTask(id: string): Promise<ApiResponse<null>> {
   try {
-    // TODO: uncomment
-    // const session = await auth();
-    // if (!session?.user?.id) {
-    //   return { success: false, message: "Unauthorized" };
-    // }
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
 
     const existingTask = await prisma.task.findUnique({ where: { id } });
-    // TODO: uncomment if (!existingTask || existingTask.userId !== session.user.id) {
-    if (!existingTask || existingTask.userId !== "cmouj5xrh0000bspzc84ez2m8") {
+    if (!existingTask || existingTask.userId !== session.user.id) {
       return { success: false, message: "Task not found or unauthorized" };
     }
 

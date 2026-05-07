@@ -75,7 +75,7 @@ const TodoList = ({ initialTasks }: Props) => {
 
   const handleAdd = async () => {
     if (!title.trim()) return;
-    console.log("LOG-todo");
+
     const optimisticTask: Task = {
       id: crypto.randomUUID(),
       title: title.trim(),
@@ -95,15 +95,12 @@ const TodoList = ({ initialTasks }: Props) => {
     setPriority("MEDIUM");
     setDeadline("");
 
-    console.log("LOG-todo1");
-    console.log({ title, priority, description, deadline });
     const response = await createTask({
       title: title.trim(),
       priority,
       description: description || undefined,
       deadline: deadline ? new Date(deadline).toISOString() : undefined,
     });
-    console.log("LOG-todo2");
 
     if (response.success) {
       toast.success("Task added successfully");
