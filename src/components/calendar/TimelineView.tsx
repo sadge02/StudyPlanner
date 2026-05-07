@@ -42,7 +42,8 @@ function statusColor(status: string) {
 type DragState = {
   taskId: string;
   originalEndTime: Date;
-  pointerOffsetX: number;
+  startPointerSvgX: number;
+  originalDayIndex: number;
 };
 
 function withPreservedTime(targetDay: Date, sourceTime: Date) {
@@ -62,6 +63,10 @@ function clientXToSvgX(svg: SVGSVGElement, clientX: number) {
     .map(Number);
 
   return (clientX - rect.left) * (viewBoxWidth / rect.width);
+}
+
+function dateToDayIndex(date: Date, chartStart: Date) {
+  return differenceInCalendarDays(startOfDay(date), chartStart);
 }
 
 export function TimelineView({
@@ -155,17 +160,20 @@ export function TimelineView({
   const handleDragStart = (
     task: ProjectTimelineTask,
     event: React.PointerEvent<SVGRectElement>,
-    handleCenterX: number,
   ) => {
     if (isPending) return;
     setErrorMessage(null);
     event.currentTarget.setPointerCapture(event.pointerId);
+    const svg = event.currentTarget.ownerSVGElement;
+    if (!svg) return;
     setDragState({
       taskId: task.id,
       originalEndTime: deadlineOverrides[task.id] ?? task.endTime,
-      pointerOffsetX:
-        clientXToSvgX(event.currentTarget.ownerSVGElement!, event.clientX) -
-        handleCenterX,
+      startPointerSvgX: clientXToSvgX(svg, event.clientX),
+      originalDayIndex: dateToDayIndex(
+        deadlineOverrides[task.id] ?? task.endTime,
+        chartStart,
+      ),
     });
   };
 
@@ -174,15 +182,15 @@ export function TimelineView({
   ) => {
     if (!dragState) return;
 
-    const pointerX =
-      clientXToSvgX(event.currentTarget, event.clientX) -
-      dragState.pointerOffsetX;
-    const clampedX = Math.max(LEFT_COLUMN_WIDTH, pointerX);
+    const currentPointerSvgX = clientXToSvgX(event.currentTarget, event.clientX);
+    const deltaDays = Math.round(
+      (currentPointerSvgX - dragState.startPointerSvgX) / DAY_WIDTH,
+    );
     const dayIndex = Math.max(
       0,
       Math.min(
         totalDays - 1,
-        Math.round((clampedX - LEFT_COLUMN_WIDTH) / DAY_WIDTH),
+        dragState.originalDayIndex + deltaDays,
       ),
     );
     const nextDay = addDays(chartStart, dayIndex);
@@ -353,7 +361,6 @@ export function TimelineView({
                     const barWidth = Math.max(16, taskSpan - 12);
                     const fillColor = statusColor(task.status);
                     const handleX = barX + barWidth - 8;
-                    const handleCenterX = handleX + 6;
 
                     return (
                       <g key={task.id}>
@@ -409,11 +416,11 @@ export function TimelineView({
                           ry={6}
                           fill="rgba(255,255,255,0.85)"
                           stroke={fillColor}
-                          className="cursor-ew-resize"
+                          className="cursor-ew-resize touch-none"
                           onPointerDown={(event) => {
                             event.preventDefault();
                             event.stopPropagation();
-                            handleDragStart(task, event, handleCenterX);
+                            handleDragStart(task, event);
                           }}
                         />
                       </g>
