@@ -8,9 +8,45 @@ import {
   type CreateTaskInput,
   type UpdateTaskInput,
 } from "@/schemas";
-import { ApiResponse, Task } from "@/types";
+import { ApiResponse, Task, TaskWithSubject } from "@/types";
 import { revalidatePath } from "next/cache";
 import { checkProjectAccess } from "../utils/access";
+
+export async function getCalendarTasks(): Promise<
+  ApiResponse<TaskWithSubject[]>
+> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const tasks = await prisma.task.findMany({
+      where: {
+        userId: session.user.id,
+        deadline: { not: null },
+      },
+      include: {
+        subject: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+            credits: true,
+            userId: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
+      orderBy: { deadline: "asc" },
+    });
+
+    return { success: true, data: tasks as TaskWithSubject[] };
+  } catch {
+    return { success: false, message: "Failed to fetch task deadlines" };
+  }
+}
 
 export async function getProjectTasks(projectId: string): Promise<ApiResponse<Task[]>> {
   try {
