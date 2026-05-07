@@ -9,15 +9,22 @@ import {
   startOfDay,
 } from "date-fns";
 import { useMemo, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { updateTask } from "@/lib/actions/task.actions";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { ProjectTimelineTask } from "@/types";
 
 const LEFT_COLUMN_WIDTH = 220;
 const DAY_WIDTH = 52;
 const GROUP_HEADER_HEIGHT = 34;
 const ROW_HEIGHT = 54;
+const SPAN_OPTIONS = [7, 15, 30, 60, 90, 180];
 
 function statusColor(status: string) {
   switch (status) {
@@ -35,6 +42,7 @@ function statusColor(status: string) {
 type DragState = {
   taskId: string;
   originalEndTime: Date;
+  pointerOffsetX: number;
 };
 
 function withPreservedTime(targetDay: Date, sourceTime: Date) {
@@ -46,12 +54,22 @@ function withPreservedTime(targetDay: Date, sourceTime: Date) {
   });
 }
 
+function clientXToSvgX(svg: SVGSVGElement, clientX: number) {
+  const rect = svg.getBoundingClientRect();
+  const [, , viewBoxWidth] = svg
+    .getAttribute("viewBox")!
+    .split(" ")
+    .map(Number);
+
+  return (clientX - rect.left) * (viewBoxWidth / rect.width);
+}
+
 export function TimelineView({
   tasks,
 }: {
   tasks: ProjectTimelineTask[];
 }) {
-  const router = useRouter();
+  const [spanDays, setSpanDays] = useState("15");
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [deadlineOverrides, setDeadlineOverrides] = useState<
     Record<string, Date>
@@ -121,17 +139,11 @@ export function TimelineView({
       sortedTasks[0].startTime,
     ),
   );
+  const selectedSpanDays = Number(spanDays);
   const chartEnd = endOfDay(
-    sortedTasks.reduce(
-      (latest, task) =>
-        task.endTime.getTime() > latest.getTime() ? task.endTime : latest,
-      sortedTasks[0].endTime,
-    ),
+    addDays(chartStart, selectedSpanDays - 1),
   );
-  const totalDays = Math.max(
-    1,
-    differenceInCalendarDays(chartEnd, chartStart) + 1,
-  );
+  const totalDays = selectedSpanDays;
   const svgWidth = LEFT_COLUMN_WIDTH + totalDays * DAY_WIDTH;
   const svgHeight =
     56 +
@@ -140,12 +152,20 @@ export function TimelineView({
       0,
     );
 
-  const handleDragStart = (task: ProjectTimelineTask) => {
+  const handleDragStart = (
+    task: ProjectTimelineTask,
+    event: React.PointerEvent<SVGRectElement>,
+    handleCenterX: number,
+  ) => {
     if (isPending) return;
     setErrorMessage(null);
+    event.currentTarget.setPointerCapture(event.pointerId);
     setDragState({
       taskId: task.id,
       originalEndTime: deadlineOverrides[task.id] ?? task.endTime,
+      pointerOffsetX:
+        clientXToSvgX(event.currentTarget.ownerSVGElement!, event.clientX) -
+        handleCenterX,
     });
   };
 
@@ -154,9 +174,10 @@ export function TimelineView({
   ) => {
     if (!dragState) return;
 
-    const svgRect = event.currentTarget.getBoundingClientRect();
-    const relativeX = event.clientX - svgRect.left;
-    const clampedX = Math.max(LEFT_COLUMN_WIDTH, relativeX);
+    const pointerX =
+      clientXToSvgX(event.currentTarget, event.clientX) -
+      dragState.pointerOffsetX;
+    const clampedX = Math.max(LEFT_COLUMN_WIDTH, pointerX);
     const dayIndex = Math.max(
       0,
       Math.min(
@@ -186,6 +207,8 @@ export function TimelineView({
       return;
     }
 
+    setDragState(null);
+
     startTransition(async () => {
       const response = await updateTask(taskId, { deadline: nextDeadline });
       if (!response.success) {
@@ -194,28 +217,35 @@ export function TimelineView({
           ...current,
           [taskId]: originalEndTime,
         }));
-        setDragState(null);
-        return;
       }
-
-      setDeadlineOverrides((current) => {
-        const next = { ...current };
-        delete next[taskId];
-        return next;
-      });
-      router.refresh();
-      setDragState(null);
     });
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-        <Badge variant="outline">Timeline span: {totalDays} days</Badge>
-        <span>
-          {format(chartStart, "MMM d")} to {format(chartEnd, "MMM d, yyyy")}
-        </span>
-        <span>Drag the bar end handle to reschedule a deadline.</span>
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="outline">Timeline span: {totalDays} days</Badge>
+          <span>
+            {format(chartStart, "MMM d")} to {format(chartEnd, "MMM d, yyyy")}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span>Span</span>
+          <Select value={spanDays} onValueChange={setSpanDays}>
+            <SelectTrigger className="h-7 w-24 bg-background text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SPAN_OPTIONS.map((days) => (
+                <SelectItem key={days} value={String(days)}>
+                  {days} days
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {errorMessage ? (
@@ -322,6 +352,8 @@ export function TimelineView({
                     const barX = LEFT_COLUMN_WIDTH + taskOffset * DAY_WIDTH + 6;
                     const barWidth = Math.max(16, taskSpan - 12);
                     const fillColor = statusColor(task.status);
+                    const handleX = barX + barWidth - 8;
+                    const handleCenterX = handleX + 6;
 
                     return (
                       <g key={task.id}>
@@ -369,7 +401,7 @@ export function TimelineView({
                         </text>
 
                         <rect
-                          x={barX + barWidth - 8}
+                          x={handleX}
                           y={rowY + 2}
                           width={12}
                           height={28}
@@ -381,7 +413,7 @@ export function TimelineView({
                           onPointerDown={(event) => {
                             event.preventDefault();
                             event.stopPropagation();
-                            handleDragStart(task);
+                            handleDragStart(task, event, handleCenterX);
                           }}
                         />
                       </g>

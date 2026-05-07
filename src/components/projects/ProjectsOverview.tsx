@@ -86,7 +86,7 @@ export function ProjectsOverview({
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-6 pt-1">
+        <CardContent className="space-y-3 pt-1">
           <div className="flex flex-wrap items-center gap-2">
             <CardTitle className="text-xl">{selectedProject.name}</CardTitle>
             <Badge variant={selectedProject.role === "ADMIN" ? "default" : "outline"}>
@@ -98,7 +98,7 @@ export function ProjectsOverview({
             </Badge>
           </div>
 
-          <CardDescription className="max-w-3xl text-sm leading-6">
+          <CardDescription className="max-w-3xl text-sm leading-5">
             {selectedProject.description || "No project description yet."}
           </CardDescription>
 
