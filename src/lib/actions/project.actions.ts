@@ -3,7 +3,7 @@
 import { auth } from "../auth";
 import { prisma } from "../db";
 import { z } from "zod";
-import { ApiResponse, Project, ProjectMember } from "@/types";
+import { ApiResponse, Project, ProjectMember, ProjectOverview } from "@/types";
 import { revalidatePath } from "next/cache";
 import { checkProjectAdmin } from "../utils/access";
 import { randomBytes } from "crypto";
@@ -21,6 +21,84 @@ const updateProjectSchema = z.object({
 const updateRoleSchema = z.object({
   newRole: z.enum(["ADMIN", "MEMBER"]),
 });
+
+export async function getUserProjectsOverview(): Promise<
+  ApiResponse<ProjectOverview[]>
+> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const memberships = await prisma.projectMember.findMany({
+      where: { userId: session.user.id },
+      include: {
+        project: {
+          include: {
+            members: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    image: true,
+                    password: true,
+                    darkMode: true,
+                    emailVerified: true,
+                  },
+                },
+              },
+              orderBy: { joinedAt: "asc" },
+            },
+            tasks: {
+              include: {
+                subject: true,
+              },
+              orderBy: [
+                { deadline: "asc" },
+                { title: "asc" },
+              ],
+            },
+          },
+        },
+      },
+      orderBy: {
+        project: {
+          updatedAt: "desc",
+        },
+      },
+    });
+
+    const projects = memberships.map((membership) => {
+      const project = membership.project;
+
+      return {
+        ...project,
+        role: membership.role,
+        tasks: project.tasks.map((task) => {
+          const proxyPoint = task.deadline ?? project.createdAt;
+          return {
+            id: task.id,
+            title: task.title,
+            description: task.description,
+            status: task.status,
+            priority: task.priority,
+            startTime: proxyPoint,
+            endTime: task.deadline ?? proxyPoint,
+            isProxyRange: !task.deadline,
+            subject: task.subject,
+          };
+        }),
+      };
+    });
+
+    return { success: true, data: projects as ProjectOverview[] };
+  } catch {
+    return { success: false, message: "Failed to fetch projects" };
+  }
+}
 
 export async function createProject(
   data: z.infer<typeof createProjectSchema>,

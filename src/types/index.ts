@@ -55,6 +55,7 @@ export interface Project {
   description: string | null;
   createdAt: Date;
   updatedAt: Date;
+  inviteCode: string;
 }
 
 export type ProjectRole = "ADMIN" | "MEMBER";
@@ -165,6 +166,24 @@ export interface ProjectWithRelations extends Project {
   members: (ProjectMember & { user: User })[];
   tasks: (Task & { subject: Subject | null })[];
   notes: (Note & { user: User })[];
+}
+
+export interface ProjectTimelineTask {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  priority: TaskPriority;
+  startTime: Date;
+  endTime: Date;
+  isProxyRange: boolean;
+  subject: Subject | null;
+}
+
+export interface ProjectOverview extends Project {
+  role: ProjectRole;
+  members: (ProjectMember & { user: User })[];
+  tasks: ProjectTimelineTask[];
 }
 
 export interface SubjectWithTasks extends Subject {
