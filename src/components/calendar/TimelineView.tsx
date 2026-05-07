@@ -69,6 +69,9 @@ export function TimelineView({
   );
 
   const groupedTasks = useMemo(() => {
+    const frozenEndTimes = new Map(
+      tasks.map((task) => [task.id, task.endTime.getTime()]),
+    );
     const groups = new Map<
       string,
       { projectId: string; projectName: string; tasks: ProjectTimelineTask[] }
@@ -90,10 +93,16 @@ export function TimelineView({
     return [...groups.values()].map((group) => ({
       ...group,
       tasks: group.tasks.sort(
-        (a, b) => a.endTime.getTime() - b.endTime.getTime(),
+        (a, b) =>
+          (dragState
+            ? frozenEndTimes.get(a.id) ?? a.endTime.getTime()
+            : a.endTime.getTime()) -
+          (dragState
+            ? frozenEndTimes.get(b.id) ?? b.endTime.getTime()
+            : b.endTime.getTime()),
       ),
     }));
-  }, [timelineTasks]);
+  }, [dragState, tasks, timelineTasks]);
 
   if (tasks.length === 0) {
     return (
@@ -167,17 +176,15 @@ export function TimelineView({
   const finalizeDrag = () => {
     if (!dragState) return;
 
+    const { originalEndTime, taskId } = dragState;
     const nextDeadline = deadlineOverrides[dragState.taskId];
     if (
       !nextDeadline ||
-      nextDeadline.getTime() === dragState.originalEndTime.getTime()
+      nextDeadline.getTime() === originalEndTime.getTime()
     ) {
       setDragState(null);
       return;
     }
-
-    const taskId = dragState.taskId;
-    setDragState(null);
 
     startTransition(async () => {
       const response = await updateTask(taskId, { deadline: nextDeadline });
@@ -185,12 +192,19 @@ export function TimelineView({
         setErrorMessage(response.message ?? "Failed to reschedule task");
         setDeadlineOverrides((current) => ({
           ...current,
-          [taskId]: dragState.originalEndTime,
+          [taskId]: originalEndTime,
         }));
+        setDragState(null);
         return;
       }
 
+      setDeadlineOverrides((current) => {
+        const next = { ...current };
+        delete next[taskId];
+        return next;
+      });
       router.refresh();
+      setDragState(null);
     });
   };
 

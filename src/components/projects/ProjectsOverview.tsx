@@ -1,7 +1,5 @@
-import Link from "next/link";
 import {
   AlertTriangle,
-  ArrowRight,
   CheckCircle2,
   Clock3,
   FolderKanban,
@@ -142,14 +140,6 @@ export function ProjectsOverview({
                       {project.description || "No project description yet."}
                     </CardDescription>
                   </div>
-
-                  <Link
-                    href={`/dashboard/projects/${project.id}`}
-                    className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium transition-colors hover:bg-muted"
-                  >
-                    Open project
-                    <ArrowRight className="size-4" />
-                  </Link>
                 </div>
               </CardHeader>
 
