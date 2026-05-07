@@ -18,25 +18,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { ProjectTimelineTask } from "@/types";
+import type { ProjectTimelineTask, TaskStatus } from "@/types";
 
 const LEFT_COLUMN_WIDTH = 220;
 const DAY_WIDTH = 52;
 const GROUP_HEADER_HEIGHT = 34;
 const ROW_HEIGHT = 54;
 const SPAN_OPTIONS = [7, 15, 30, 60, 90, 180];
+const STATUS_COLORS: Record<TaskStatus, string> = {
+  DONE: "#22c55e",
+  IN_PROGRESS: "#f59e0b",
+  TODO: "#94a3b8",
+  BLOCKED: "#60a5fa",
+};
 
-function statusColor(status: string) {
-  switch (status) {
-    case "DONE":
-      return "#22c55e";
-    case "IN_PROGRESS":
-      return "#f59e0b";
-    case "TODO":
-      return "#94a3b8";
-    default:
-      return "#60a5fa";
-  }
+function statusColor(status: TaskStatus) {
+  return STATUS_COLORS[status];
 }
 
 type DragState = {
@@ -230,10 +227,10 @@ export function TimelineView({
   };
 
   return (
-      <div className="space-y-2">
-        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline">Timeline span: {totalDays} days</Badge>
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="outline">Timeline span: {totalDays} days</Badge>
           <span>
             {format(chartStart, "MMM d")} to {format(chartEnd, "MMM d, yyyy")}
           </span>
@@ -359,7 +356,7 @@ export function TimelineView({
                     const taskSpan = taskDurationDays * DAY_WIDTH;
                     const barX = LEFT_COLUMN_WIDTH + taskOffset * DAY_WIDTH + 6;
                     const barWidth = Math.max(16, taskSpan - 12);
-                    const fillColor = statusColor(task.status);
+                    const fillColor = statusColor(task.status as TaskStatus);
                     const handleX = barX + barWidth - 8;
 
                     return (
