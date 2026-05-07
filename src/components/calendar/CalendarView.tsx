@@ -6,15 +6,29 @@ import {
   dateFnsLocalizer,
   type EventProps,
   type SlotInfo,
+  type ToolbarProps,
+  type View,
 } from "react-big-calendar";
-import { format, getDay, isWithinInterval, parse, startOfMonth, startOfWeek } from "date-fns";
+import {
+  addDays,
+  endOfDay,
+  endOfMonth,
+  endOfWeek,
+  format,
+  getDay,
+  isWithinInterval,
+  parse,
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+} from "date-fns";
 import { enUS } from "date-fns/locale";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RRule, rrulestr } from "rrule";
 import { EventForm } from "@/components/events/EventForm";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +49,13 @@ const localizer = dateFnsLocalizer({
 });
 
 const calendarViews = [Views.MONTH, Views.WEEK, Views.DAY, Views.AGENDA];
+const viewLabels: Record<View, string> = {
+  month: "Month",
+  week: "7 Days",
+  work_week: "Work week",
+  day: "Day",
+  agenda: "List",
+};
 
 type CalendarEventInput = Omit<
   EventWithSubject,
@@ -92,6 +113,73 @@ function EventBlock({ event }: EventProps<CalendarBlock>) {
           {event.resource.subjectName}
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function getRangeForView(date: Date, view: View): CalendarRange {
+  if (view === Views.WEEK) {
+    return {
+      start: startOfWeek(date),
+      end: endOfWeek(date),
+    };
+  }
+
+  if (view === Views.DAY) {
+    return {
+      start: startOfDay(date),
+      end: endOfDay(date),
+    };
+  }
+
+  if (view === Views.AGENDA) {
+    return {
+      start: startOfDay(date),
+      end: endOfDay(addDays(date, 13)),
+    };
+  }
+
+  return {
+    start: startOfWeek(startOfMonth(date)),
+    end: endOfWeek(endOfMonth(date)),
+  };
+}
+
+function CalendarToolbar({
+  label,
+  onNavigate,
+  onView,
+  view,
+}: ToolbarProps<CalendarBlock, object>) {
+  const views: View[] = [Views.MONTH, Views.WEEK, Views.DAY, Views.AGENDA];
+
+  return (
+    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-center gap-2">
+        <Button variant="outline" size="sm" onClick={() => onNavigate("PREV")}>
+          Back
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => onNavigate("TODAY")}>
+          Today
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => onNavigate("NEXT")}>
+          Next
+        </Button>
+        <div className="ml-2 text-lg font-semibold tracking-tight">{label}</div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {views.map((nextView) => (
+          <Button
+            key={nextView}
+            variant={view === nextView ? "default" : "outline"}
+            size="sm"
+            onClick={() => onView(nextView)}
+          >
+            {viewLabels[nextView]}
+          </Button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -198,13 +286,11 @@ export function CalendarView({
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<CalendarRange | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<CalendarBlock | null>(null);
-  const [visibleRange, setVisibleRange] = useState<CalendarRange>(() => {
-    const now = new Date();
-    return {
-      start: startOfWeek(startOfMonth(now), { weekStartsOn: 0 }),
-      end: new Date(now.getFullYear(), now.getMonth() + 1, 7, 23, 59, 59),
-    };
-  });
+  const [currentDate, setCurrentDate] = useState(() => new Date());
+  const [currentView, setCurrentView] = useState<View>(Views.MONTH);
+  const [visibleRange, setVisibleRange] = useState<CalendarRange>(() =>
+    getRangeForView(new Date(), Views.MONTH),
+  );
 
   const calendarEvents: CalendarBlock[] = useMemo(() => {
     const deadlineBlocks: CalendarBlock[] = taskDeadlines
@@ -277,8 +363,12 @@ export function CalendarView({
         "[&_.rbc-agenda-view]:overflow-hidden [&_.rbc-agenda-view]:rounded-xl [&_.rbc-agenda-view]:border [&_.rbc-agenda-view]:border-border/70",
         "[&_.rbc-day-bg+_.rbc-day-bg]:border-border [&_.rbc-header+_.rbc-header]:border-border [&_.rbc-month-row+_.rbc-month-row]:border-border",
         "[&_.rbc-time-content>*+*]:border-border [&_.rbc-timeslot-group]:border-border [&_.rbc-time-header-content]:border-border [&_.rbc-time-header-gutter]:border-border",
-        "[&_.rbc-today]:bg-[color-mix(in_oklab,var(--color-primary)_10%,transparent)]",
-        "[&_.rbc-off-range-bg]:bg-[color-mix(in_oklab,var(--color-muted)_70%,transparent)]",
+        "[&_.rbc-today]:bg-[color-mix(in_oklab,var(--color-primary)_8%,transparent)] dark:[&_.rbc-today]:bg-[color-mix(in_oklab,var(--color-primary)_16%,var(--color-card))]",
+        "[&_.rbc-off-range-bg]:bg-transparent",
+        "[&_.rbc-off-range]:text-muted-foreground/55 dark:[&_.rbc-off-range]:text-muted-foreground/60",
+        "[&_.rbc-date-cell]:pr-2 [&_.rbc-date-cell]:pt-1",
+        "[&_.rbc-off-range_.rbc-button-link]:text-muted-foreground/55 dark:[&_.rbc-off-range_.rbc-button-link]:text-muted-foreground/60",
+        "[&_.rbc-date-cell_.rbc-button-link]:font-normal",
         "[&_.rbc-event]:rounded-lg [&_.rbc-event]:border-0 [&_.rbc-event]:px-2 [&_.rbc-event]:py-1 [&_.rbc-event]:shadow-none",
         "[&_.calendar-task-event]:border-l-[3px] [&_.calendar-task-event]:border-l-[color-mix(in_oklab,black_30%,transparent)]",
         "[&_.calendar-scheduled-event]:border-l-0",
@@ -289,37 +379,38 @@ export function CalendarView({
         "[&_.rbc-agenda-view_table.rbc-agenda-table_>_tbody>tr>th]:border-border",
       )}
     >
-      <CardHeader className="border-b border-border/60">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-1">
-            <CardTitle>Schedule overview</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              {calendarEvents.length}{" "}
-              {calendarEvents.length === 1 ? "item" : "items"} loaded, with
-              lectures and task deadlines shown together.
-            </p>
+      <CardContent className="pt-2">
+        {errorMessage ? (
+          <div className="mb-3 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+            {errorMessage}
           </div>
-          {errorMessage ? (
-            <p className="text-sm text-destructive">{errorMessage}</p>
-          ) : null}
-        </div>
-      </CardHeader>
-
-      <CardContent>
+        ) : null}
         <div className="h-[760px] min-h-[560px]">
           <Calendar
             className="h-full"
             localizer={localizer}
             events={calendarEvents}
+            date={currentDate}
+            view={currentView}
             startAccessor="start"
             endAccessor="end"
             defaultView={Views.MONTH}
             views={calendarViews}
+            length={14}
             popup
             selectable
-            components={{ event: EventBlock }}
+            messages={{ week: "7 Days", day: "Day", agenda: "List" }}
+            components={{ event: EventBlock, toolbar: CalendarToolbar }}
             onSelectSlot={handleSelectSlot}
             onSelectEvent={handleSelectEvent}
+            onNavigate={(date) => {
+              setCurrentDate(date);
+              setVisibleRange(getRangeForView(date, currentView));
+            }}
+            onView={(view) => {
+              setCurrentView(view);
+              setVisibleRange(getRangeForView(currentDate, view));
+            }}
             onRangeChange={(range) => setVisibleRange(normalizeRange(range))}
             eventPropGetter={(event) => {
               const subjectColor: string =
