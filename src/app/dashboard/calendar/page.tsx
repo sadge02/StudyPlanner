@@ -1,9 +1,16 @@
 import { CalendarView } from "@/components/calendar/CalendarView";
 import { getEvents } from "@/lib/actions/event.actions";
+import { getCalendarTasks } from "@/lib/actions/task.actions";
 
 export default async function CalendarPage() {
   const eventsResponse = await getEvents();
+  const tasksResponse = await getCalendarTasks();
   const events = eventsResponse.data ?? [];
+  const taskDeadlines = tasksResponse.data ?? [];
+  const errorMessage = [eventsResponse, tasksResponse]
+    .filter((response) => !response.success && response.message)
+    .map((response) => response.message)
+    .join(" ");
 
   return (
     <div className="space-y-6">
@@ -19,9 +26,8 @@ export default async function CalendarPage() {
 
       <CalendarView
         events={events}
-        errorMessage={
-          eventsResponse.success ? undefined : eventsResponse.message
-        }
+        taskDeadlines={taskDeadlines}
+        errorMessage={errorMessage || undefined}
       />
     </div>
   );
