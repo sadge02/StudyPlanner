@@ -78,15 +78,18 @@ export async function getUserProjectsOverview(): Promise<
         ...project,
         role: membership.role,
         tasks: project.tasks.map((task) => {
-          const proxyPoint = task.deadline ?? project.createdAt;
+          const proxyStart = project.createdAt;
+          const proxyEnd = task.deadline ?? project.createdAt;
           return {
             id: task.id,
+            projectId: project.id,
+            projectName: project.name,
             title: task.title,
             description: task.description,
             status: task.status,
             priority: task.priority,
-            startTime: proxyPoint,
-            endTime: task.deadline ?? proxyPoint,
+            startTime: proxyStart,
+            endTime: proxyEnd,
             isProxyRange: !task.deadline,
             subject: task.subject,
           };

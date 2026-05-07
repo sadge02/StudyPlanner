@@ -5,25 +5,45 @@ import {
   differenceInCalendarDays,
   endOfDay,
   format,
-  isSameDay,
+  set,
   startOfDay,
 } from "date-fns";
+import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { updateTask } from "@/lib/actions/task.actions";
 import { Badge } from "@/components/ui/badge";
 import type { ProjectTimelineTask } from "@/types";
 
 const LEFT_COLUMN_WIDTH = 220;
 const DAY_WIDTH = 52;
+const GROUP_HEADER_HEIGHT = 34;
 const ROW_HEIGHT = 54;
 
-function priorityColor(priority: ProjectTimelineTask["priority"]) {
-  switch (priority) {
-    case "HIGH":
-      return "#d9485f";
-    case "MEDIUM":
+function statusColor(status: string) {
+  switch (status) {
+    case "DONE":
+      return "#22c55e";
+    case "IN_PROGRESS":
       return "#f59e0b";
+    case "TODO":
+      return "#94a3b8";
     default:
-      return "#10b981";
+      return "#60a5fa";
   }
+}
+
+type DragState = {
+  taskId: string;
+  originalEndTime: Date;
+};
+
+function withPreservedTime(targetDay: Date, sourceTime: Date) {
+  return set(targetDay, {
+    hours: sourceTime.getHours(),
+    minutes: sourceTime.getMinutes(),
+    seconds: sourceTime.getSeconds(),
+    milliseconds: sourceTime.getMilliseconds(),
+  });
 }
 
 export function TimelineView({
@@ -31,6 +51,50 @@ export function TimelineView({
 }: {
   tasks: ProjectTimelineTask[];
 }) {
+  const router = useRouter();
+  const [dragState, setDragState] = useState<DragState | null>(null);
+  const [deadlineOverrides, setDeadlineOverrides] = useState<
+    Record<string, Date>
+  >({});
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  const timelineTasks = useMemo(
+    () =>
+      tasks.map((task) => ({
+        ...task,
+        endTime: deadlineOverrides[task.id] ?? task.endTime,
+      })),
+    [deadlineOverrides, tasks],
+  );
+
+  const groupedTasks = useMemo(() => {
+    const groups = new Map<
+      string,
+      { projectId: string; projectName: string; tasks: ProjectTimelineTask[] }
+    >();
+
+    for (const task of timelineTasks) {
+      const existing = groups.get(task.projectId);
+      if (existing) {
+        existing.tasks.push(task);
+      } else {
+        groups.set(task.projectId, {
+          projectId: task.projectId,
+          projectName: task.projectName,
+          tasks: [task],
+        });
+      }
+    }
+
+    return [...groups.values()].map((group) => ({
+      ...group,
+      tasks: group.tasks.sort(
+        (a, b) => a.endTime.getTime() - b.endTime.getTime(),
+      ),
+    }));
+  }, [timelineTasks]);
+
   if (tasks.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-6 text-sm text-muted-foreground">
@@ -40,9 +104,7 @@ export function TimelineView({
     );
   }
 
-  const sortedTasks = [...tasks].sort(
-    (a, b) => a.endTime.getTime() - b.endTime.getTime(),
-  );
+  const sortedTasks = groupedTasks.flatMap((group) => group.tasks);
   const chartStart = startOfDay(
     sortedTasks.reduce(
       (earliest, task) =>
@@ -62,7 +124,75 @@ export function TimelineView({
     differenceInCalendarDays(chartEnd, chartStart) + 1,
   );
   const svgWidth = LEFT_COLUMN_WIDTH + totalDays * DAY_WIDTH;
-  const svgHeight = 60 + sortedTasks.length * ROW_HEIGHT;
+  const svgHeight =
+    56 +
+    groupedTasks.reduce(
+      (height, group) => height + GROUP_HEADER_HEIGHT + group.tasks.length * ROW_HEIGHT,
+      0,
+    );
+
+  const handleDragStart = (task: ProjectTimelineTask) => {
+    if (isPending) return;
+    setErrorMessage(null);
+    setDragState({
+      taskId: task.id,
+      originalEndTime: deadlineOverrides[task.id] ?? task.endTime,
+    });
+  };
+
+  const handlePointerMove = (
+    event: React.PointerEvent<SVGSVGElement>,
+  ) => {
+    if (!dragState) return;
+
+    const svgRect = event.currentTarget.getBoundingClientRect();
+    const relativeX = event.clientX - svgRect.left;
+    const clampedX = Math.max(LEFT_COLUMN_WIDTH, relativeX);
+    const dayIndex = Math.max(
+      0,
+      Math.min(
+        totalDays - 1,
+        Math.round((clampedX - LEFT_COLUMN_WIDTH) / DAY_WIDTH),
+      ),
+    );
+    const nextDay = addDays(chartStart, dayIndex);
+    const nextEndTime = withPreservedTime(nextDay, dragState.originalEndTime);
+
+    setDeadlineOverrides((current) => ({
+      ...current,
+      [dragState.taskId]: nextEndTime,
+    }));
+  };
+
+  const finalizeDrag = () => {
+    if (!dragState) return;
+
+    const nextDeadline = deadlineOverrides[dragState.taskId];
+    if (
+      !nextDeadline ||
+      nextDeadline.getTime() === dragState.originalEndTime.getTime()
+    ) {
+      setDragState(null);
+      return;
+    }
+
+    const taskId = dragState.taskId;
+    setDragState(null);
+
+    startTransition(async () => {
+      const response = await updateTask(taskId, { deadline: nextDeadline });
+      if (!response.success) {
+        setErrorMessage(response.message ?? "Failed to reschedule task");
+        setDeadlineOverrides((current) => ({
+          ...current,
+          [taskId]: dragState.originalEndTime,
+        }));
+        return;
+      }
+
+      router.refresh();
+    });
+  };
 
   return (
     <div className="space-y-4">
@@ -71,7 +201,14 @@ export function TimelineView({
         <span>
           {format(chartStart, "MMM d")} to {format(chartEnd, "MMM d, yyyy")}
         </span>
+        <span>Drag the bar end handle to reschedule a deadline.</span>
       </div>
+
+      {errorMessage ? (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+          {errorMessage}
+        </div>
+      ) : null}
 
       <div className="overflow-x-auto rounded-xl border border-border/70 bg-card">
         <svg
@@ -79,6 +216,9 @@ export function TimelineView({
           className="min-w-full"
           role="img"
           aria-label="Project task timeline"
+          onPointerMove={handlePointerMove}
+          onPointerUp={finalizeDrag}
+          onPointerLeave={finalizeDrag}
         >
           <rect x="0" y="0" width={svgWidth} height={svgHeight} fill="transparent" />
 
@@ -123,66 +263,120 @@ export function TimelineView({
             stroke="rgba(148, 163, 184, 0.3)"
           />
 
-          {sortedTasks.map((task, index) => {
-            const rowY = 44 + index * ROW_HEIGHT;
-            const taskOffset = differenceInCalendarDays(
-              startOfDay(task.startTime),
-              chartStart,
-            );
-            const taskSpan =
-              Math.max(
-                1,
-                differenceInCalendarDays(
-                  endOfDay(task.endTime),
-                  startOfDay(task.startTime),
-                ) + 1,
-              ) * DAY_WIDTH;
-            const barX = LEFT_COLUMN_WIDTH + taskOffset * DAY_WIDTH + 6;
-            const barWidth = Math.max(14, taskSpan - 12);
-            const strokeColor = priorityColor(task.priority);
+          {(() => {
+            let currentY = 44;
 
-            return (
-              <g key={task.id}>
-                <line
-                  x1={0}
-                  y1={rowY + ROW_HEIGHT - 8}
-                  x2={svgWidth}
-                  y2={rowY + ROW_HEIGHT - 8}
-                  stroke="rgba(148, 163, 184, 0.12)"
-                />
+            return groupedTasks.map((group) => {
+              const groupStartY = currentY;
+              currentY += GROUP_HEADER_HEIGHT;
 
-                <text x={16} y={rowY + 18} fontSize="13" fill="currentColor">
-                  {task.title}
-                </text>
-                <text x={16} y={rowY + 36} fontSize="11" fill="currentColor" opacity="0.62">
-                  {task.subject?.name ?? task.status.replaceAll("_", " ")}
-                  {task.isProxyRange ? " • no deadline range" : ""}
-                </text>
+              return (
+                <g key={group.projectId}>
+                  <rect
+                    x={0}
+                    y={groupStartY}
+                    width={svgWidth}
+                    height={GROUP_HEADER_HEIGHT}
+                    fill="rgba(148, 163, 184, 0.08)"
+                  />
+                  <text
+                    x={16}
+                    y={groupStartY + 21}
+                    fontSize="13"
+                    fontWeight="600"
+                    fill="currentColor"
+                  >
+                    {group.projectName}
+                  </text>
 
-                <rect
-                  x={barX}
-                  y={rowY + 4}
-                  rx={10}
-                  ry={10}
-                  width={barWidth}
-                  height={24}
-                  fill={strokeColor}
-                  opacity={task.isProxyRange ? 0.45 : 0.92}
-                />
+                  {group.tasks.map((task) => {
+                    const rowY = currentY;
+                    currentY += ROW_HEIGHT;
 
-                <text
-                  x={barX + 10}
-                  y={rowY + 20}
-                  fontSize="11"
-                  fill="white"
-                >
-                  {task.isProxyRange || isSameDay(task.startTime, task.endTime)
-                    ? format(task.endTime, "MMM d")
-                    : `${format(task.startTime, "MMM d")} - ${format(task.endTime, "MMM d")}`}
-                </text>
-              </g>
-            );
-          })}
+                    const taskOffset = differenceInCalendarDays(
+                      startOfDay(task.startTime),
+                      chartStart,
+                    );
+                    const taskDurationDays = Math.max(
+                      1,
+                      differenceInCalendarDays(
+                        endOfDay(task.endTime),
+                        startOfDay(task.startTime),
+                      ) + 1,
+                    );
+                    const taskSpan = taskDurationDays * DAY_WIDTH;
+                    const barX = LEFT_COLUMN_WIDTH + taskOffset * DAY_WIDTH + 6;
+                    const barWidth = Math.max(16, taskSpan - 12);
+                    const fillColor = statusColor(task.status);
+
+                    return (
+                      <g key={task.id}>
+                        <line
+                          x1={0}
+                          y1={rowY + ROW_HEIGHT - 8}
+                          x2={svgWidth}
+                          y2={rowY + ROW_HEIGHT - 8}
+                          stroke="rgba(148, 163, 184, 0.12)"
+                        />
+
+                        <text x={16} y={rowY + 18} fontSize="13" fill="currentColor">
+                          {task.title}
+                        </text>
+                        <text
+                          x={16}
+                          y={rowY + 36}
+                          fontSize="11"
+                          fill="currentColor"
+                          opacity="0.62"
+                        >
+                          {(task.subject?.name ?? task.status.replaceAll("_", " ")) +
+                            ` • ${taskDurationDays}d`}
+                          {task.isProxyRange ? " • proxy deadline" : ""}
+                        </text>
+
+                        <rect
+                          x={barX}
+                          y={rowY + 4}
+                          rx={10}
+                          ry={10}
+                          width={barWidth}
+                          height={24}
+                          fill={fillColor}
+                          opacity={task.isProxyRange ? 0.5 : 0.92}
+                        />
+
+                        <text
+                          x={barX + 10}
+                          y={rowY + 20}
+                          fontSize="11"
+                          fill="white"
+                        >
+                          {taskDurationDays}d
+                        </text>
+
+                        <rect
+                          x={barX + barWidth - 8}
+                          y={rowY + 2}
+                          width={12}
+                          height={28}
+                          rx={6}
+                          ry={6}
+                          fill="rgba(255,255,255,0.85)"
+                          stroke={fillColor}
+                          className="cursor-ew-resize"
+                          onPointerDown={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            handleDragStart(task);
+                          }}
+                        />
+                      </g>
+                    );
+                  })}
+                </g>
+              );
+            });
+          })()}
         </svg>
       </div>
     </div>

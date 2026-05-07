@@ -170,6 +170,8 @@ export interface ProjectWithRelations extends Project {
 
 export interface ProjectTimelineTask {
   id: string;
+  projectId: string;
+  projectName: string;
   title: string;
   description: string | null;
   status: string;

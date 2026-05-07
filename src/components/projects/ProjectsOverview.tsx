@@ -46,6 +46,7 @@ export function ProjectsOverview({
 }: {
   projects: ProjectOverview[];
 }) {
+  const allTimelineTasks = projects.flatMap((project) => project.tasks);
   const totalTasks = projects.reduce((sum, project) => sum + project.tasks.length, 0);
   const completedTasks = projects.reduce(
     (sum, project) =>
@@ -98,6 +99,20 @@ export function ProjectsOverview({
           icon={<CheckCircle2 className="size-4 text-muted-foreground" />}
         />
       </section>
+
+      <Card className="overflow-hidden border border-border/70 bg-gradient-to-br from-card via-card to-muted/20 shadow-sm">
+        <CardHeader className="border-b border-border/60">
+          <CardTitle className="text-2xl">Cross-project roadmap</CardTitle>
+          <CardDescription>
+            Tasks are grouped by project, bar length reflects duration from the
+            project start proxy to each deadline, and dragging the handle
+            updates the deadline directly.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-1">
+          <TimelineView tasks={allTimelineTasks} />
+        </CardContent>
+      </Card>
 
       <section className="grid gap-6">
         {projects.map((project) => {
@@ -203,8 +218,8 @@ export function ProjectsOverview({
                       <div>
                         <h3 className="text-base font-medium">Timeline</h3>
                         <p className="text-sm text-muted-foreground">
-                          Task bars use deadlines and proxy dates because tasks
-                          do not currently store a dedicated start timestamp.
+                          Bar color follows task status, and bar length reflects
+                          the current duration window ending at the deadline.
                         </p>
                       </div>
                       {project.tasks.some((task) => task.isProxyRange) ? (
