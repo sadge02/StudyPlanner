@@ -72,6 +72,13 @@ async function main() {
     });
   }
 
+  let researchMethods = await prisma.subject.findFirst({ where: { name: "Research Methods", userId: demoUser.id } });
+  if (!researchMethods) {
+    researchMethods = await prisma.subject.create({
+      data: { name: "Research Methods", credits: 2, color: "#8B5CF6", userId: demoUser.id },
+    });
+  }
+
   // 3. Create Group Project safely
   console.log("Creating projects...");
   let seniorProject = await prisma.project.findFirst({ where: { name: "Senior Design Alpha" } });
@@ -232,6 +239,54 @@ async function main() {
         subjectId: cs101.id,
       },
     });
+  }
+
+  // 6. Create Study Sessions
+  console.log("Creating study sessions...");
+
+  const sessionStart = (daysAgo: number, hour: number, minute = 0) => {
+    const start = new Date(today);
+    start.setDate(today.getDate() - daysAgo);
+    start.setHours(hour, minute, 0, 0);
+    return start;
+  };
+
+  const studySessions = [
+    { subjectId: cs101.id, daysAgo: 1, hour: 9, minute: 0, duration: 55 * 60 },
+    { subjectId: cs101.id, daysAgo: 3, hour: 14, minute: 30, duration: 80 * 60 },
+    { subjectId: cs101.id, daysAgo: 6, hour: 10, minute: 15, duration: 45 * 60 },
+    { subjectId: math201.id, daysAgo: 1, hour: 16, minute: 0, duration: 95 * 60 },
+    { subjectId: math201.id, daysAgo: 4, hour: 11, minute: 0, duration: 70 * 60 },
+    { subjectId: math201.id, daysAgo: 8, hour: 18, minute: 30, duration: 110 * 60 },
+    { subjectId: phys101.id, daysAgo: 2, hour: 8, minute: 45, duration: 65 * 60 },
+    { subjectId: phys101.id, daysAgo: 7, hour: 15, minute: 0, duration: 50 * 60 },
+    { subjectId: researchMethods.id, daysAgo: 5, hour: 13, minute: 0, duration: 40 * 60 },
+    { subjectId: researchMethods.id, daysAgo: 10, hour: 17, minute: 15, duration: 75 * 60 },
+    { subjectId: null, daysAgo: 2, hour: 20, minute: 0, duration: 30 * 60 },
+  ];
+
+  for (const s of studySessions) {
+    const startTime = sessionStart(s.daysAgo, s.hour, s.minute);
+    const endTime = new Date(startTime.getTime() + s.duration * 1000);
+    const exists = await prisma.studySession.findFirst({
+      where: {
+        userId: demoUser.id,
+        subjectId: s.subjectId,
+        startTime,
+      },
+    });
+
+    if (!exists) {
+      await prisma.studySession.create({
+        data: {
+          startTime,
+          endTime,
+          duration: s.duration,
+          userId: demoUser.id,
+          subjectId: s.subjectId,
+        },
+      });
+    }
   }
 
   console.log("Seeding finished.");
