@@ -116,16 +116,19 @@ export function ActiveTimerIndicator({
       )}
     >
       <span className="flex size-4 shrink-0 items-center justify-center">
-      {activeSession.isPaused ? (
-        <span className="flex size-4 items-center justify-center rounded-full bg-orange-500/20">
-          <Pause className="size-3 fill-orange-500 text-orange-500" aria-hidden />
-        </span>
-      ) : (
-        <span className="relative flex size-2">
-          <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-60" />
-          <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
-        </span>
-      )}
+        {activeSession.isPaused ? (
+          <span className="flex size-4 items-center justify-center rounded-full bg-orange-500/20">
+            <Pause
+              className="size-3 fill-orange-500 text-orange-500"
+              aria-hidden
+            />
+          </span>
+        ) : (
+          <span className="relative flex size-2">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-60" />
+            <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+          </span>
+        )}
       </span>
       <Clock className="size-3.5" aria-hidden />
       <span className="w-16 text-left font-mono tabular-nums">{elapsed}</span>

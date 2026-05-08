@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import {
+  getActiveStudySession,
   startStudySession,
   stopStudySession,
 } from "@/lib/actions/session.actions";
@@ -34,7 +35,7 @@ type StudyTimerControlEvent = CustomEvent<{
   isPaused: boolean;
 }>;
 
-export function useStudyTimer(initialSession: StudyTimerSession | null) {
+export function useStudyTimer(initialSession: StudyTimerSession | null = null) {
   const [currentSession, setCurrentSession] =
     useState<StudyTimerSession | null>(initialSession);
   const [startedAt, setStartedAt] = useState<Date | null>(
@@ -46,7 +47,34 @@ export function useStudyTimer(initialSession: StudyTimerSession | null) {
   );
   const [isPaused, setIsPaused] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isHydrating, setIsHydrating] = useState(!initialSession);
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    if (initialSession) return;
+
+    let ignore = false;
+
+    async function hydrateActiveSession() {
+      const response = await getActiveStudySession();
+      if (ignore) return;
+
+      if (response.success && response.data) {
+        setCurrentSession(response.data);
+        setStartedAt(response.data.startTime);
+        setElapsed(secondsSince(response.data.startTime));
+        emitTimerChange(response.data);
+      }
+
+      setIsHydrating(false);
+    }
+
+    hydrateActiveSession();
+
+    return () => {
+      ignore = true;
+    };
+  }, [initialSession]);
 
   useEffect(() => {
     if (!startedAt || isPaused) return;
@@ -152,10 +180,11 @@ export function useStudyTimer(initialSession: StudyTimerSession | null) {
   };
 
   return {
+    currentSession,
     elapsed,
     errorMessage,
     isActive: Boolean(currentSession),
-    isLoading: isPending,
+    isLoading: isHydrating || isPending,
     isPaused,
     pauseTimer,
     startTimer,
