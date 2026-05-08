@@ -18,9 +18,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useStudyTimer } from "@/hooks/useStudyTimer";
-import type { StudyTimerTaskOption, Subject } from "@/types";
+import type { StudyTimerSession, StudyTimerTaskOption, Subject } from "@/types";
 
 type StudyTimerProps = {
+  activeSession: StudyTimerSession | null;
   subjects: Subject[];
   tasks: StudyTimerTaskOption[];
 };
@@ -35,9 +36,11 @@ function formatElapsed(seconds: number) {
     .join(":");
 }
 
-export function StudyTimer({ subjects, tasks }: StudyTimerProps) {
-  const [subjectId, setSubjectId] = useState("none");
-  const [taskId, setTaskId] = useState("none");
+export function StudyTimer({ activeSession, subjects, tasks }: StudyTimerProps) {
+  const [subjectId, setSubjectId] = useState(
+    activeSession?.subjectId ?? "none",
+  );
+  const [taskId, setTaskId] = useState(activeSession?.taskId ?? "none");
   const {
     elapsed,
     errorMessage,
@@ -47,7 +50,7 @@ export function StudyTimer({ subjects, tasks }: StudyTimerProps) {
     pauseTimer,
     startTimer,
     stopTimer,
-  } = useStudyTimer();
+  } = useStudyTimer(activeSession);
 
   const handleStart = () => {
     startTimer({

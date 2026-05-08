@@ -4,7 +4,10 @@ import { StudyTimeTrendChart } from "@/components/analytics/StudyTimeTrendChart"
 import { StudyTimer } from "@/components/analytics/StudyTimer";
 import { TaskCompletionChart } from "@/components/analytics/TaskCompletionChart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getStudyStats } from "@/lib/actions/session.actions";
+import {
+  getActiveStudySession,
+  getStudyStats,
+} from "@/lib/actions/session.actions";
 import { getSubjects } from "@/lib/actions/subject.actions";
 import {
   getStudyTimerTasks,
@@ -60,8 +63,14 @@ export default async function AnalyticsPage({
 }) {
   const params = await searchParams;
   const period = parsePeriod(params?.period);
-  const [statsResponse, subjectsResponse, taskOptionsResponse, taskStatsResponse] =
-    await Promise.all([
+  const [
+    activeSessionResponse,
+    statsResponse,
+    subjectsResponse,
+    taskOptionsResponse,
+    taskStatsResponse,
+  ] = await Promise.all([
+    getActiveStudySession(),
     getStudyStats(period),
     getSubjects(),
     getStudyTimerTasks(),
@@ -69,6 +78,7 @@ export default async function AnalyticsPage({
   ]);
   const stats = statsResponse.data ?? emptyStats;
   const taskStats = taskStatsResponse.data ?? emptyTaskStats;
+  const activeSession = activeSessionResponse.data ?? null;
   const subjects = subjectsResponse.data ?? [];
   const taskOptions = taskOptionsResponse.data ?? [];
 
@@ -165,7 +175,11 @@ export default async function AnalyticsPage({
         </Card>
       </div>
 
-      <StudyTimer subjects={subjects} tasks={taskOptions} />
+      <StudyTimer
+        activeSession={activeSession}
+        subjects={subjects}
+        tasks={taskOptions}
+      />
       <StudyTimeTrendChart data={stats.trends} period={stats.period} />
       <ProductivityChart data={stats.timeBySubject} />
       <TaskCompletionChart stats={taskStats} />

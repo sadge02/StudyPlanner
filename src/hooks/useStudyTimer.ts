@@ -21,12 +21,16 @@ function emitTimerChange(session: StudyTimerSession | null) {
   );
 }
 
-export function useStudyTimer() {
+export function useStudyTimer(initialSession: StudyTimerSession | null) {
   const [currentSession, setCurrentSession] =
-    useState<StudyTimerSession | null>(null);
-  const [startedAt, setStartedAt] = useState<Date | null>(null);
+    useState<StudyTimerSession | null>(initialSession);
+  const [startedAt, setStartedAt] = useState<Date | null>(
+    initialSession?.startTime ?? null,
+  );
   const [elapsedBeforePause, setElapsedBeforePause] = useState(0);
-  const [elapsed, setElapsed] = useState(0);
+  const [elapsed, setElapsed] = useState(
+    initialSession ? secondsSince(initialSession.startTime) : 0,
+  );
   const [isPaused, setIsPaused] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
