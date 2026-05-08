@@ -112,7 +112,30 @@ export async function getCalendarTasks(): Promise<
   }
 }
 
-export async function getProjectTasks(projectId: string): Promise<ApiResponse<Task[]>> {
+export async function getUserTasks(): Promise<ApiResponse<Task[]>> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const tasks = await prisma.task.findMany({
+      where: {
+        userId: session.user.id,
+        projectId: null, // personal tasks only
+      },
+      orderBy: { deadline: "asc" },
+    });
+
+    return { success: true, data: tasks as unknown as Task[] };
+  } catch {
+    return { success: false, message: "Failed to fetch tasks" };
+  }
+}
+
+export async function getProjectTasks(
+  projectId: string,
+): Promise<ApiResponse<Task[]>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -121,7 +144,10 @@ export async function getProjectTasks(projectId: string): Promise<ApiResponse<Ta
 
     const hasAccess = await checkProjectAccess(session.user.id, projectId);
     if (!hasAccess) {
-      return { success: false, message: "Unauthorized: You are not a member of this project" };
+      return {
+        success: false,
+        message: "Unauthorized: You are not a member of this project",
+      };
     }
 
     const tasks = await prisma.task.findMany({

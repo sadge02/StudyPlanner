@@ -1,10 +1,4 @@
-import { KanbanColumn, Task } from "@/types";
-
-export const mockColumns: KanbanColumn[] = [
-  { id: "todo", title: "TODO" },
-  { id: "in-progress", title: "In Progress" },
-  { id: "done", title: "Done" },
-];
+import { Task } from "@/types";
 
 export const mockTasks: Task[] = [
   {
@@ -23,7 +17,7 @@ export const mockTasks: Task[] = [
     id: "2",
     title: "Read chapter 4",
     description: "Read chapter 4 of the textbook.",
-    status: "in-progress",
+    status: "in_progress",
     priority: "MEDIUM",
     userId: "mock-user-1",
     deadline: null,

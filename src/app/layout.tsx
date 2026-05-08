@@ -5,6 +5,7 @@ import { AppProviders } from "@/components/providers/app-providers";
 import { auth } from "@/lib/auth";
 
 import "./globals.css";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,6 +45,7 @@ export default async function RootLayout({
     >
       <body className="flex min-h-full flex-col">
         <AppProviders session={session}>{children}</AppProviders>
+        <Toaster />
       </body>
     </html>
   );

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Task, KanbanColumn as Column } from "@/types";
 import KanbanColumn from "./KanbanColumn";
 import {
@@ -17,17 +16,18 @@ import { useKanbanDnd } from "@/hooks/useKanbanDnd";
 type Props = {
   initialColumns: Column[];
   initialTasks: Task[];
+  projectId: string;
 };
 
-const KanbanBoard = ({ initialColumns, initialTasks }: Props) => {
-  const [columns] = useState<Column[]>(initialColumns);
+const KanbanBoard = ({ initialColumns, initialTasks, projectId }: Props) => {
   const {
     activeTask,
     handleDragStart,
     handleDragOver,
     handleDragEnd,
+    handleDeleteTask,
     getTasksForColumn,
-  } = useKanbanDnd(initialTasks, columns);
+  } = useKanbanDnd(initialTasks, initialColumns);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -50,15 +50,19 @@ const KanbanBoard = ({ initialColumns, initialTasks }: Props) => {
         },
       }}
     >
-      <div className="flex flex-row gap-4 p-4 overflow-x-auto">
-        {columns.map((column) => (
+      <div className="flex flex-row gap-4 p-4 overflow-x-auto items-start">
+        {initialColumns.map((column, index) => (
           <KanbanColumn
             key={column.id}
             column={column}
             tasks={getTasksForColumn(column.id)}
+            allowAdd={index === 0}
+            onTaskDelete={handleDeleteTask}
+            projectId={projectId}
           />
         ))}
       </div>
+
       <DragOverlay>
         {activeTask ? <KanbanCard task={activeTask} /> : null}
       </DragOverlay>

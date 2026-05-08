@@ -1,15 +1,17 @@
 import { z } from "zod";
-import { titleField, descriptionField, priorityEnum, cuidOrEmpty } from "./shared";
+import { titleField, descriptionField } from "./shared";
 
 export const createTaskSchema = z.object({
   title: titleField,
   description: descriptionField,
-  priority: priorityEnum,
-  deadline: z.coerce.date().optional().nullable(),
-  subjectId: cuidOrEmpty,
-  projectId: cuidOrEmpty,
-  parentId: cuidOrEmpty,
+  priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
+  deadline: z.string().optional().nullable(),
+  subjectId: z.string().optional(),
+  projectId: z.string().optional(),
+  parentId: z.string().optional(),
 });
+
+export type CreateTaskFormInput = z.infer<typeof createTaskSchema>;
 
 export const updateTaskSchema = createTaskSchema.partial().extend({
   status: z.string().optional(),

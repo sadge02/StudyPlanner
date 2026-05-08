@@ -302,21 +302,6 @@ export interface PaginatedResponse<T> {
 // FORM TYPES
 // ==========================================
 
-export interface CreateTaskInput {
-  title: string;
-  description?: string;
-  priority: TaskPriority;
-  deadline?: Date;
-  subjectId?: string;
-  projectId?: string;
-  parentId?: string;
-}
-
-export interface UpdateTaskInput extends Partial<CreateTaskInput> {
-  id: string;
-  status?: string;
-}
-
 export interface CreateSubjectInput {
   name: string;
   credits?: number;

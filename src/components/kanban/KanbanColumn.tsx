@@ -8,13 +8,23 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
+import AddTaskButton from "./AddTaskButton";
 
 type KanbanColumnProps = {
   column: Column;
   tasks: Task[];
+  allowAdd?: boolean;
+  onTaskDelete?: (taskId: string) => void;
+  projectId: string;
 };
 
-const KanbanColumn = ({ column, tasks }: KanbanColumnProps) => {
+const KanbanColumn = ({
+  column,
+  tasks,
+  allowAdd = false,
+  onTaskDelete,
+  projectId,
+}: KanbanColumnProps) => {
   const { setNodeRef } = useDroppable({ id: column.id });
 
   return (
@@ -33,13 +43,15 @@ const KanbanColumn = ({ column, tasks }: KanbanColumnProps) => {
       >
         <div
           ref={setNodeRef}
-          className="flex flex-col gap-2 min-h-128 rounded-lg p-2 bg-muted/50"
+          className="flex flex-col gap-2 min-h-32 h-fit rounded-lg p-2 bg-muted/90"
         >
           {tasks.map((task) => (
-            <KanbanCard key={task.id} task={task} />
+            <KanbanCard key={task.id} task={task} onDelete={onTaskDelete} />
           ))}
         </div>
       </SortableContext>
+
+      {allowAdd && <AddTaskButton projectId={projectId} />}
     </div>
   );
 };

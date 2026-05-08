@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Task, KanbanColumn as Column } from "@/types";
-import { DragStartEvent, DragOverEvent } from "@dnd-kit/core";
+import { DragStartEvent, DragOverEvent, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
+import { deleteTask, updateTask } from "@/lib/actions/task.actions";
+import { toast } from "sonner";
 
 export function useKanbanDnd(initialTasks: Task[], columns: Column[]) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
@@ -61,12 +63,40 @@ export function useKanbanDnd(initialTasks: Task[], columns: Column[]) {
     });
   };
 
-  const handleDragEnd = () => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     setActiveTask(null);
+
+    const { active, over } = event;
+    if (!over) return;
+    const taskId = active.id as string;
+    const task = tasks.find((t) => t.id === taskId);
+
+    if (task) {
+      const response = await updateTask(taskId, { status: task.status });
+
+      if (response.success) {
+        toast.success("Task status updated");
+      } else {
+        toast.error("Failed to update task");
+      }
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    const response = await deleteTask(taskId);
+
+    if (response.success) {
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+      toast.success("Task deleted");
+    } else {
+      toast.error("Failed to delete task");
+    }
   };
 
   const getTasksForColumn = (columnId: string) =>
-    tasks.filter((task) => task.status === columnId);
+    tasks.filter(
+      (task) => task.status.toLowerCase() === columnId.toLowerCase(),
+    );
 
   return {
     tasks,
@@ -75,5 +105,6 @@ export function useKanbanDnd(initialTasks: Task[], columns: Column[]) {
     handleDragOver,
     handleDragEnd,
     getTasksForColumn,
+    handleDeleteTask,
   };
 }
