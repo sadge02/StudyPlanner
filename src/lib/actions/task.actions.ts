@@ -8,9 +8,44 @@ import {
   type CreateTaskInput,
   type UpdateTaskInput,
 } from "@/schemas";
-import { ApiResponse, Task, TaskWithSubject } from "@/types";
+import { ApiResponse, Task, TaskCompletionStats, TaskWithSubject } from "@/types";
 import { revalidatePath } from "next/cache";
 import { checkProjectAccess } from "../utils/access";
+
+export async function getTaskCompletionStats(): Promise<
+  ApiResponse<TaskCompletionStats>
+> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const [totalTasks, completedTasks] = await prisma.$transaction([
+      prisma.task.count({ where: { userId: session.user.id } }),
+      prisma.task.count({
+        where: {
+          userId: session.user.id,
+          status: "DONE",
+        },
+      }),
+    ]);
+
+    return {
+      success: true,
+      data: {
+        totalTasks,
+        completedTasks,
+        incompleteTasks: totalTasks - completedTasks,
+        completionRate: totalTasks
+          ? Math.round((completedTasks / totalTasks) * 100)
+          : 0,
+      },
+    };
+  } catch {
+    return { success: false, message: "Failed to fetch task completion stats" };
+  }
+}
 
 export async function getCalendarTasks(): Promise<
   ApiResponse<TaskWithSubject[]>

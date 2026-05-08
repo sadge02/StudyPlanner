@@ -1,6 +1,8 @@
 import { ProductivityChart } from "@/components/analytics/ProductivityChart";
+import { TaskCompletionChart } from "@/components/analytics/TaskCompletionChart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getStudyStats } from "@/lib/actions/session.actions";
+import { getTaskCompletionStats } from "@/lib/actions/task.actions";
 
 function formatDuration(seconds: number) {
   if (seconds === 0) return "0m";
@@ -22,9 +24,20 @@ const emptyStats = {
   timeBySubject: [],
 };
 
+const emptyTaskStats = {
+  totalTasks: 0,
+  completedTasks: 0,
+  incompleteTasks: 0,
+  completionRate: 0,
+};
+
 export default async function AnalyticsPage() {
-  const statsResponse = await getStudyStats();
+  const [statsResponse, taskStatsResponse] = await Promise.all([
+    getStudyStats(),
+    getTaskCompletionStats(),
+  ]);
   const stats = statsResponse.data ?? emptyStats;
+  const taskStats = taskStatsResponse.data ?? emptyTaskStats;
 
   return (
     <div className="space-y-6">
@@ -40,6 +53,12 @@ export default async function AnalyticsPage() {
       {!statsResponse.success && statsResponse.message ? (
         <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
           {statsResponse.message}
+        </div>
+      ) : null}
+
+      {!taskStatsResponse.success && taskStatsResponse.message ? (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          {taskStatsResponse.message}
         </div>
       ) : null}
 
@@ -82,6 +101,7 @@ export default async function AnalyticsPage() {
       </div>
 
       <ProductivityChart data={stats.timeBySubject} />
+      <TaskCompletionChart stats={taskStats} />
     </div>
   );
 }

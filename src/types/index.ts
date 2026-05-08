@@ -415,6 +415,13 @@ export interface SubjectStudyTime {
   color: string;
 }
 
+export interface TaskCompletionStats {
+  totalTasks: number;
+  completedTasks: number;
+  incompleteTasks: number;
+  completionRate: number;
+}
+
 export interface Dashboard {
   upcomingEvents: UpcomingEvent[];
   todaysTasks: Task[];
