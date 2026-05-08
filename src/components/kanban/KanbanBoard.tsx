@@ -50,7 +50,7 @@ const KanbanBoard = ({ initialColumns, initialTasks, projectId }: Props) => {
         },
       }}
     >
-      <div className="flex flex-row gap-4 p-4 overflow-x-auto items-start">
+      <div className="flex flex-row gap-4 overflow-x-auto items-start">
         {initialColumns.map((column, index) => (
           <KanbanColumn
             key={column.id}

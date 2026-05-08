@@ -213,12 +213,14 @@ export async function getProjectTasks(
     }
 
     const hasAccess = await checkProjectAccess(session.user.id, projectId);
+    console.log("hasAccess", hasAccess);
     if (!hasAccess) {
       return {
         success: false,
         message: "Unauthorized: You are not a member of this project",
       };
     }
+    console.log("cucaj");
 
     const tasks = await prisma.task.findMany({
       where: { projectId },
@@ -247,6 +249,8 @@ export async function createTask(
         message: "Validation error: " + validatedData.error.issues[0].message,
       };
     }
+
+    console.log("HERE");
 
     const task = await prisma.task.create({
       data: {

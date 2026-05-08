@@ -30,8 +30,8 @@ const KanbanColumn = ({
   return (
     // w-fit + min-w-84 ensures the column is at least 21rem (KanbanCard w-xs is 20 rem + 1 rem padding)
     <div className="flex flex-col gap-3 w-fit min-w-84">
-      <div className="flex items-center gap-2 px-1">
-        <span className="font-semibold text-sm">{column.title}</span>
+      <div className="flex items-center gap-2 px-1 justify-center">
+        <span className="font-semibold text-md">{column.title}</span>
         <Badge variant="secondary" className="text-xs">
           {tasks.length}
         </Badge>
@@ -43,7 +43,7 @@ const KanbanColumn = ({
       >
         <div
           ref={setNodeRef}
-          className="flex flex-col gap-2 min-h-32 h-fit rounded-lg p-2 bg-muted/90"
+          className="flex flex-col gap-2 min-h-25 h-fit rounded-lg p-2 bg-muted/90 shadow"
         >
           {tasks.map((task) => (
             <KanbanCard key={task.id} task={task} onDelete={onTaskDelete} />
