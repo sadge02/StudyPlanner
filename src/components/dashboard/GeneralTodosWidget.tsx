@@ -2,14 +2,14 @@
 
 import { Task } from "@/types";
 import { useRouter } from "next/navigation";
-import { Plus, Check, X } from "lucide-react";
+import { Plus, Check, X, List } from "lucide-react";
 import { Checkbox } from "../ui/checkbox";
 import { updateTask, createTask } from "@/lib/actions/task.actions";
 import { toast } from "sonner";
 import { useState, useRef } from "react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { auth } from "@/lib/auth";
+import { Separator } from "../ui/separator";
 
 type Props = {
   tasks: Task[];
@@ -62,20 +62,23 @@ const GeneralTodosWidget = ({ tasks: initialTasks }: Props) => {
   };
 
   return (
-    <div className="rounded-xl border bg-card p-4 flex flex-col gap-3">
+    <div className="rounded-xl border bg-card p-4 flex flex-col gap-4 shadow">
       <div className="flex items-center justify-between">
-        <span className="font-semibold">General TODOs</span>
-        <button
+        <div className="font-semibold flex gap-2 items-center">
+          <List size={20} className="text-blue-600" />
+          General TODOs
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          className="shadow-sm"
           onClick={() => {
             setAdding(true);
             setTimeout(() => inputRef.current?.focus(), 50);
           }}
         >
-          <Plus
-            size={16}
-            className="text-muted-foreground hover:text-foreground"
-          />
-        </button>
+          <Plus size={16} className="hover:text-foreground text-blue-600" />
+        </Button>
       </div>
 
       <div className="flex flex-col gap-2">
@@ -128,12 +131,14 @@ const GeneralTodosWidget = ({ tasks: initialTasks }: Props) => {
       </div>
 
       {tasks.length > 4 && (
-        <button
-          className="text-xs text-primary font-medium"
+        <Button
+          type="button"
+          variant="outline"
+          className="text-xs w-full text-primary hover:text-primary shadow-sm"
           onClick={() => router.push("/dashboard/todos")}
         >
           View all ({tasks.length})
-        </button>
+        </Button>
       )}
     </div>
   );

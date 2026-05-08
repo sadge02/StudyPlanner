@@ -4,6 +4,7 @@ import { useNextClass } from "@/hooks/useNextClass";
 import { useRouter } from "next/navigation";
 import { GraduationCap, MapPin, Clock } from "lucide-react";
 import { Button } from "../ui/button";
+import { Separator } from "../ui/separator";
 
 const NextClassBanner = () => {
   const { event, timeRemaining } = useNextClass();
@@ -11,7 +12,7 @@ const NextClassBanner = () => {
 
   if (!event) {
     return (
-      <div className="rounded-xl bg-muted p-4 flex flex-col gap-1">
+      <div className="rounded-xl bg-muted p-4 flex flex-col gap-1 shadow">
         <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wide">
           Next Class
         </p>
@@ -26,13 +27,13 @@ const NextClassBanner = () => {
 
   return (
     <div
-      className="rounded-xl p-4 flex flex-col gap-3 text-white cursor-pointer"
+      className="rounded-xl p-4 flex flex-col gap-3 text-white cursor-pointer shadow"
       style={{ backgroundColor: subjectColor }}
       onClick={() => router.push("/dashboard/calendar")}
     >
       <div className="flex items-center gap-2">
-        <GraduationCap size={14} className="opacity-80" />
-        <p className="text-xs uppercase font-semibold tracking-wide opacity-80">
+        <GraduationCap size={20} className="opacity-80" />
+        <p className="text-sm uppercase font-semibold tracking-wide opacity-80 align-middle">
           Next Event
         </p>
       </div>
@@ -57,10 +58,10 @@ const NextClassBanner = () => {
           {timeRemaining}
         </div>
       </div>
-
+      <Separator />
       <Button
         size="sm"
-        className="w-full bg-white/20 hover:bg-white/30 text-white border-none mt-1"
+        className="w-full bg-white/20 hover:bg-white/30 text-white border-none mt-1 shadow-sm"
         onClick={(e) => {
           e.stopPropagation();
           router.push("/dashboard/calendar");

@@ -1,10 +1,12 @@
 import TodaysBoard from "@/components/dashboard/TodaysBoard";
 import NextClassBanner from "@/components/dashboard/NextClassBanner";
-import ProductivityTrends from "@/components/dashboard/ProductivityTrends";
 import GeneralTodosWidget from "@/components/dashboard/GeneralTodosWidget";
-import { mockTasks } from "@/lib/mock-data";
 import { auth } from "@/lib/auth";
-import { getTodaysTasks, getUserTasks } from "@/lib/actions/task.actions";
+import {
+  getProductivityTrends,
+  getTodaysTasks,
+  getUserTasks,
+} from "@/lib/actions/task.actions";
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -21,6 +23,9 @@ export default async function DashboardPage() {
 
   const today = new Date();
   const name = session?.user?.name ? `, ${session.user.name}` : "";
+
+  const trends = (await getProductivityTrends()).data ?? [];
+  const totalDone = trends.reduce((sum, d) => sum + d.value, 0);
 
   return (
     <div className="flex flex-col h-full p-6 gap-4">
@@ -47,7 +52,6 @@ export default async function DashboardPage() {
         {/* Right column */}
         <div className="flex flex-col gap-4">
           <NextClassBanner />
-          <ProductivityTrends />
           <GeneralTodosWidget tasks={todos} />
         </div>
       </div>

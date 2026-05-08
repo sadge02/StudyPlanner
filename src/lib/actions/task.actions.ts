@@ -106,6 +106,46 @@ export async function getTaskCompletionStats(): Promise<
   }
 }
 
+export async function getProductivityTrends(): Promise<
+  ApiResponse<{ day: string; value: number }[]>
+> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) return { success: false, message: "Unauthorized" };
+
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (6 - i));
+      d.setHours(0, 0, 0, 0);
+      return d;
+    });
+
+    const counts = await Promise.all(
+      days.map(async (day) => {
+        const next = new Date(day);
+        next.setDate(next.getDate() + 1);
+
+        const count = await prisma.task.count({
+          where: {
+            userId: session.user.id,
+            status: "DONE",
+            updatedAt: { gte: day, lt: next },
+          },
+        });
+
+        return {
+          day: day.toLocaleDateString("en-US", { weekday: "narrow" }),
+          value: count,
+        };
+      }),
+    );
+
+    return { success: true, data: counts };
+  } catch {
+    return { success: false, message: "Failed to fetch productivity trends" };
+  }
+}
+
 export async function getCalendarTasks(): Promise<
   ApiResponse<TaskWithSubject[]>
 > {

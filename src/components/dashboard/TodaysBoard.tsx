@@ -7,6 +7,9 @@ import { Badge } from "../ui/badge";
 import { updateTask } from "@/lib/actions/task.actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { ClipboardCheck, Plus } from "lucide-react";
+import { Button } from "../ui/button";
+import { Separator } from "../ui/separator";
 
 const priorityColor: Record<string, string> = {
   HIGH: "bg-orange-500 text-white hover:bg-orange-500",
@@ -34,19 +37,26 @@ const TodaysBoard = ({ initialTasks }: Props) => {
   };
 
   return (
-    <div className="rounded-xl border bg-card p-4 flex flex-col gap-3">
+    <div className="rounded-xl border bg-card p-4 flex flex-col gap-4 shadow">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="font-semibold">Today&apos;s Board</span>
+          <div className="font-semibold flex gap-2 items-center">
+            <ClipboardCheck size={20} className="text-blue-600" />
+            Today&apos;s Board
+          </div>
           <Badge variant="secondary">{tasks.length}</Badge>
         </div>
-        <button
-          className="text-sm text-primary font-medium"
+        <Button
+          type="button"
+          variant="outline"
+          className="text-primary hover:text-primary text-xs shadow-sm"
           onClick={() => router.push("/dashboard/kanban")}
         >
           View Calendar
-        </button>
+        </Button>
       </div>
+
+      <Separator />
 
       <div className="flex flex-col gap-2 max-h-64 overflow-y-auto">
         {tasks.length === 0 && (
@@ -80,12 +90,14 @@ const TodaysBoard = ({ initialTasks }: Props) => {
         ))}
       </div>
 
-      <button
-        className="text-sm text-primary font-medium text-center mt-1"
+      <Button
+        type="button"
+        variant="outline"
+        className="w-fit self-center px-4 text-xs shadow-sm"
         onClick={() => router.push("/dashboard/todos")}
       >
-        + Add Task
-      </button>
+        <Plus className="text-blue-600" /> Add Task
+      </Button>
     </div>
   );
 };
