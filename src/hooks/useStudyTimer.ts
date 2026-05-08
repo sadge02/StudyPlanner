@@ -29,6 +29,11 @@ function emitTimerChange(
   );
 }
 
+type StudyTimerControlEvent = CustomEvent<{
+  elapsedSeconds: number;
+  isPaused: boolean;
+}>;
+
 export function useStudyTimer(initialSession: StudyTimerSession | null) {
   const [currentSession, setCurrentSession] =
     useState<StudyTimerSession | null>(initialSession);
@@ -54,6 +59,34 @@ export function useStudyTimer(initialSession: StudyTimerSession | null) {
     const interval = window.setInterval(updateElapsed, 1000);
     return () => window.clearInterval(interval);
   }, [elapsedBeforePause, isPaused, startedAt]);
+
+  useEffect(() => {
+    const handleTimerControl = (event: Event) => {
+      if (!currentSession) return;
+
+      const { elapsedSeconds, isPaused: nextPaused } = (
+        event as StudyTimerControlEvent
+      ).detail;
+
+      if (nextPaused) {
+        setElapsed(elapsedSeconds);
+        setElapsedBeforePause(elapsedSeconds);
+        setStartedAt(null);
+        setIsPaused(true);
+        return;
+      }
+
+      setElapsed(elapsedSeconds);
+      setElapsedBeforePause(elapsedSeconds);
+      setStartedAt(new Date());
+      setIsPaused(false);
+    };
+
+    window.addEventListener("study-timer-control", handleTimerControl);
+    return () => {
+      window.removeEventListener("study-timer-control", handleTimerControl);
+    };
+  }, [currentSession]);
 
   const startTimer = (data: { subjectId?: string; taskId?: string }) => {
     setErrorMessage(null);
