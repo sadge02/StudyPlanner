@@ -123,7 +123,15 @@ export async function updateTask(
     }
 
     const existingTask = await prisma.task.findUnique({ where: { id } });
-    if (!existingTask || existingTask.userId !== session.user.id) {
+    if (!existingTask) {
+      return { success: false, message: "Task not found or unauthorized" };
+    }
+
+    const hasProjectAccess =
+      existingTask.projectId &&
+      (await checkProjectAccess(session.user.id, existingTask.projectId));
+
+    if (existingTask.userId !== session.user.id && !hasProjectAccess) {
       return { success: false, message: "Task not found or unauthorized" };
     }
 
@@ -134,6 +142,10 @@ export async function updateTask(
 
     revalidatePath("/dashboard/tasks");
     revalidatePath("/dashboard/kanban");
+    revalidatePath("/dashboard/projects");
+    if (existingTask.projectId) {
+      revalidatePath(`/dashboard/projects/${existingTask.projectId}`);
+    }
     return { success: true, data: task as unknown as Task };
   } catch {
     return { success: false, message: "Failed to update task" };

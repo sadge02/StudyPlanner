@@ -3,7 +3,7 @@
 import { auth } from "../auth";
 import { prisma } from "../db";
 import { z } from "zod";
-import { ApiResponse, Project, ProjectMember } from "@/types";
+import { ApiResponse, Project, ProjectMember, ProjectOverview } from "@/types";
 import { revalidatePath } from "next/cache";
 import { checkProjectAdmin } from "../utils/access";
 import { randomBytes } from "crypto";
@@ -21,6 +21,87 @@ const updateProjectSchema = z.object({
 const updateRoleSchema = z.object({
   newRole: z.enum(["ADMIN", "MEMBER"]),
 });
+
+export async function getUserProjectsOverview(): Promise<
+  ApiResponse<ProjectOverview[]>
+> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const memberships = await prisma.projectMember.findMany({
+      where: { userId: session.user.id },
+      include: {
+        project: {
+          include: {
+            members: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    image: true,
+                    password: true,
+                    darkMode: true,
+                    emailVerified: true,
+                  },
+                },
+              },
+              orderBy: { joinedAt: "asc" },
+            },
+            tasks: {
+              include: {
+                subject: true,
+              },
+              orderBy: [
+                { deadline: "asc" },
+                { title: "asc" },
+              ],
+            },
+          },
+        },
+      },
+      orderBy: {
+        project: {
+          updatedAt: "desc",
+        },
+      },
+    });
+
+    const projects = memberships.map((membership) => {
+      const project = membership.project;
+
+      return {
+        ...project,
+        role: membership.role,
+        tasks: project.tasks.map((task) => {
+          const proxyStart = project.createdAt;
+          const proxyEnd = task.deadline ?? project.createdAt;
+          return {
+            id: task.id,
+            projectId: project.id,
+            projectName: project.name,
+            title: task.title,
+            description: task.description,
+            status: task.status,
+            priority: task.priority,
+            startTime: proxyStart,
+            endTime: proxyEnd,
+            isProxyRange: !task.deadline,
+            subject: task.subject,
+          };
+        }),
+      };
+    });
+
+    return { success: true, data: projects as ProjectOverview[] };
+  } catch {
+    return { success: false, message: "Failed to fetch projects" };
+  }
+}
 
 export async function createProject(
   data: z.infer<typeof createProjectSchema>,
@@ -192,6 +273,72 @@ export async function joinProject(code: string): Promise<ApiResponse<Project>> {
     return { success: true, data: project as Project };
   } catch {
     return { success: false, message: "Failed to join project" };
+  }
+}
+
+export async function leaveProject(projectId: string): Promise<ApiResponse<null>> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const membership = await prisma.projectMember.findUnique({
+      where: {
+        userId_projectId: {
+          userId: session.user.id,
+          projectId,
+        },
+      },
+    });
+
+    if (!membership) {
+      return { success: false, message: "You are not a member of this project" };
+    }
+
+    const members = await prisma.projectMember.findMany({
+      where: { projectId },
+      select: {
+        id: true,
+        userId: true,
+        role: true,
+      },
+    });
+
+    if (members.length === 1) {
+      await prisma.project.delete({
+        where: { id: projectId },
+      });
+
+      revalidatePath("/dashboard/projects");
+      revalidatePath(`/dashboard/projects/${projectId}`);
+      return { success: true };
+    }
+
+    if (membership.role === "ADMIN") {
+      const adminCount = members.filter((member) => member.role === "ADMIN").length;
+      if (adminCount === 1) {
+        return {
+          success: false,
+          message: "Assign another admin before leaving this project",
+        };
+      }
+    }
+
+    await prisma.projectMember.delete({
+      where: {
+        userId_projectId: {
+          userId: session.user.id,
+          projectId,
+        },
+      },
+    });
+
+    revalidatePath("/dashboard/projects");
+    revalidatePath(`/dashboard/projects/${projectId}`);
+    return { success: true };
+  } catch {
+    return { success: false, message: "Failed to leave project" };
   }
 }
 
