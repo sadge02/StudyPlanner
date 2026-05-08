@@ -58,9 +58,9 @@ function TaskBucket({
       </button>
 
       {isOpen ? (
-        <div className="border-t border-border/70 px-3 py-2">
+        <div className="border-t border-border/70 px-3 py-1.5">
           {items.length > 0 ? (
-            <div className="max-h-44 space-y-2 overflow-y-auto pr-1">
+            <div className="max-h-24 space-y-1.5 overflow-y-auto pr-1">
               {items.map((task) => (
                 <div
                   key={task.id}
@@ -107,16 +107,16 @@ export function TaskCompletionChart({ stats }: TaskCompletionChartProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4 md:grid-cols-[220px_1fr]">
-          <div className="relative h-56">
+        <div className="grid gap-4 md:grid-cols-[180px_1fr]">
+          <div className="relative h-44">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={chartData}
                   dataKey="value"
                   nameKey="name"
-                  innerRadius={62}
-                  outerRadius={86}
+                  innerRadius={48}
+                  outerRadius={68}
                   paddingAngle={stats.totalTasks > 0 ? 4 : 0}
                 >
                   {chartData.map((entry) => (
@@ -135,26 +135,25 @@ export function TaskCompletionChart({ stats }: TaskCompletionChartProps) {
             </ResponsiveContainer>
 
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-3xl font-semibold">
+              <span className="text-2xl font-semibold">
                 {stats.completionRate}%
               </span>
               <span className="text-xs text-muted-foreground">complete</span>
             </div>
           </div>
 
-          <div className="grid content-center gap-3">
+          <div className="grid content-center gap-2.5">
             {chartData.map((entry) => (
               <TaskBucket
                 key={entry.name}
                 color={entry.color}
                 count={entry.value}
-                defaultOpen={entry.name === "Remaining"}
                 items={entry.items}
                 title={entry.name}
               />
             ))}
 
-            <div className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+            <div className="rounded-lg bg-muted/50 px-3 py-1.5 text-sm text-muted-foreground">
               {stats.completedTasks} of {stats.totalTasks} tasks completed
             </div>
           </div>

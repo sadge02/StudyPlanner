@@ -65,9 +65,9 @@ export function StudyTimer({ activeSession, subjects, tasks }: StudyTimerProps) 
         <CardTitle>Study Timer</CardTitle>
         <CardDescription>Track focused study sessions.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="rounded-lg border border-border/70 bg-muted/30 px-4 py-5 text-center">
-          <div className="font-mono text-4xl font-semibold tabular-nums">
+      <CardContent className="space-y-3">
+        <div className="rounded-lg border border-border/70 bg-muted/30 px-4 py-3 text-center">
+          <div className="font-mono text-3xl font-semibold tabular-nums">
             {formatElapsed(elapsed)}
           </div>
           <div className="mt-1 text-xs text-muted-foreground">

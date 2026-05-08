@@ -175,14 +175,17 @@ export default async function AnalyticsPage({
         </Card>
       </div>
 
-      <StudyTimer
-        activeSession={activeSession}
-        subjects={subjects}
-        tasks={taskOptions}
-      />
+      <div className="grid gap-6 xl:grid-cols-2">
+        <TaskCompletionChart stats={taskStats} />
+        <StudyTimer
+          activeSession={activeSession}
+          subjects={subjects}
+          tasks={taskOptions}
+        />
+      </div>
+
       <StudyTimeTrendChart data={stats.trends} period={stats.period} />
       <ProductivityChart data={stats.timeBySubject} />
-      <TaskCompletionChart stats={taskStats} />
     </div>
   );
 }
