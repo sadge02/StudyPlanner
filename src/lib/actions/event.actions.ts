@@ -42,6 +42,32 @@ export async function getEvents(): Promise<ApiResponse<EventWithSubject[]>> {
   }
 }
 
+export async function getNextEvent(): Promise<
+  ApiResponse<EventWithSubject | null>
+> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const now = new Date();
+
+    const event = await prisma.event.findFirst({
+      where: {
+        userId: session.user.id,
+        startTime: { gte: now },
+      },
+      orderBy: { startTime: "asc" },
+      include: { subject: true },
+    });
+
+    return { success: true, data: event as unknown as EventWithSubject | null };
+  } catch {
+    return { success: false, message: "Failed to fetch next event" };
+  }
+}
+
 export async function createEvent(
   data: CreateEventInput,
 ): Promise<ApiResponse<Event>> {
