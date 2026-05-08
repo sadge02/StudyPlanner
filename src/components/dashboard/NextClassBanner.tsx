@@ -33,7 +33,7 @@ const NextClassBanner = () => {
       <div className="flex items-center gap-2">
         <GraduationCap size={14} className="opacity-80" />
         <p className="text-xs uppercase font-semibold tracking-wide opacity-80">
-          Next Class
+          Next Event
         </p>
       </div>
 
@@ -66,7 +66,7 @@ const NextClassBanner = () => {
           router.push("/dashboard/calendar");
         }}
       >
-        Get Directions
+        Show in Calendar
       </Button>
     </div>
   );

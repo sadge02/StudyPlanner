@@ -44,7 +44,7 @@ const TodaysBoard = ({ initialTasks }: Props) => {
           className="text-sm text-primary font-medium"
           onClick={() => router.push("/dashboard/kanban")}
         >
-          View Schedule
+          View Calendar
         </button>
       </div>
 

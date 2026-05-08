@@ -260,6 +260,7 @@ export async function updateTask(
       data: validatedData.data,
     });
 
+    revalidatePath("/dashboard");
     revalidatePath("/dashboard/tasks");
     revalidatePath("/dashboard/kanban");
     revalidatePath("/dashboard/projects");
