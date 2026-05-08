@@ -433,6 +433,15 @@ export interface TaskCompletionStats {
   completedTasks: number;
   incompleteTasks: number;
   completionRate: number;
+  completedTaskItems: TaskCompletionItem[];
+  incompleteTaskItems: TaskCompletionItem[];
+}
+
+export interface TaskCompletionItem {
+  id: string;
+  title: string;
+  status: TaskStatus;
+  deadline: Date | null;
 }
 
 export interface Dashboard {

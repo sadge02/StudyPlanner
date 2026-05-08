@@ -44,6 +44,8 @@ const emptyTaskStats = {
   completedTasks: 0,
   incompleteTasks: 0,
   completionRate: 0,
+  completedTaskItems: [],
+  incompleteTaskItems: [],
 };
 
 export default async function AnalyticsPage({

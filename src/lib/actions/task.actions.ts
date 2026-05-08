@@ -8,7 +8,14 @@ import {
   type CreateTaskInput,
   type UpdateTaskInput,
 } from "@/schemas";
-import { ApiResponse, Task, TaskCompletionStats, TaskWithSubject } from "@/types";
+import {
+  ApiResponse,
+  Task,
+  TaskCompletionItem,
+  TaskCompletionStats,
+  TaskStatus,
+  TaskWithSubject,
+} from "@/types";
 import { revalidatePath } from "next/cache";
 import { checkProjectAccess } from "../utils/access";
 
@@ -21,7 +28,7 @@ export async function getTaskCompletionStats(): Promise<
       return { success: false, message: "Unauthorized" };
     }
 
-    const [totalTasks, completedTasks] = await prisma.$transaction([
+    const [totalTasks, completedTasks, taskItems] = await prisma.$transaction([
       prisma.task.count({ where: { userId: session.user.id } }),
       prisma.task.count({
         where: {
@@ -29,7 +36,27 @@ export async function getTaskCompletionStats(): Promise<
           status: "DONE",
         },
       }),
+      prisma.task.findMany({
+        where: { userId: session.user.id },
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          deadline: true,
+        },
+        orderBy: [{ status: "asc" }, { deadline: "asc" }, { title: "asc" }],
+      }),
     ]);
+    const completionItems = taskItems.map((task) => ({
+      ...task,
+      status: task.status as TaskStatus,
+    })) satisfies TaskCompletionItem[];
+    const completedTaskItems = completionItems.filter(
+      (task) => task.status === "DONE",
+    );
+    const incompleteTaskItems = completionItems.filter(
+      (task) => task.status !== "DONE",
+    );
 
     return {
       success: true,
@@ -40,6 +67,8 @@ export async function getTaskCompletionStats(): Promise<
         completionRate: totalTasks
           ? Math.round((completedTasks / totalTasks) * 100)
           : 0,
+        completedTaskItems,
+        incompleteTaskItems,
       },
     };
   } catch {
