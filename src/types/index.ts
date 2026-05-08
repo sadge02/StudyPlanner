@@ -404,6 +404,44 @@ export interface StudyStats {
   sessionsCount: number;
   averageSessionDuration: number;
   bySubject: Record<string, number>;
+  timeBySubject: SubjectStudyTime[];
+  trends: StudyTimeTrend[];
+  currentStreakDays: number;
+  longestStreakDays: number;
+  period: StudyStatsPeriod;
+}
+
+export interface SubjectStudyTime {
+  subjectName: string;
+  durationSeconds: number;
+  durationHours: number;
+  sessionsCount: number;
+  color: string;
+}
+
+export type StudyStatsPeriod = "week" | "month" | "year" | "all";
+
+export interface StudyTimeTrend {
+  label: string;
+  durationSeconds: number;
+  durationHours: number;
+  sessionsCount: number;
+}
+
+export interface TaskCompletionStats {
+  totalTasks: number;
+  completedTasks: number;
+  incompleteTasks: number;
+  completionRate: number;
+  completedTaskItems: TaskCompletionItem[];
+  incompleteTaskItems: TaskCompletionItem[];
+}
+
+export interface TaskCompletionItem {
+  id: string;
+  title: string;
+  status: TaskStatus;
+  deadline: Date | null;
 }
 
 export interface Dashboard {

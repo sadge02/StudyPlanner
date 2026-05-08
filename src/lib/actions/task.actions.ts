@@ -8,9 +8,73 @@ import {
   type CreateTaskInput,
   type UpdateTaskInput,
 } from "@/schemas";
-import { ApiResponse, Task, TaskWithSubject } from "@/types";
+import {
+  ApiResponse,
+  Task,
+  TaskCompletionItem,
+  TaskCompletionStats,
+  TaskStatus,
+  TaskWithSubject,
+} from "@/types";
 import { revalidatePath } from "next/cache";
 import { checkProjectAccess } from "../utils/access";
+
+export async function getTaskCompletionStats(): Promise<
+  ApiResponse<TaskCompletionStats>
+> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const [totalTasks, completedTasks, taskItems] = await prisma.$transaction([
+      prisma.task.count({ where: { userId: session.user.id } }),
+      prisma.task.count({
+        where: {
+          userId: session.user.id,
+          status: "DONE",
+        },
+      }),
+      prisma.task.findMany({
+        where: { userId: session.user.id },
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          deadline: true,
+        },
+        orderBy: [{ status: "asc" }, { deadline: "asc" }, { title: "asc" }],
+      }),
+    ]);
+    const completionItems = taskItems.map((task) => ({
+      ...task,
+      status: task.status as TaskStatus,
+    })) satisfies TaskCompletionItem[];
+    const completedTaskItems = completionItems.filter(
+      (task) => task.status === "DONE",
+    );
+    const incompleteTaskItems = completionItems.filter(
+      (task) => task.status !== "DONE",
+    );
+
+    return {
+      success: true,
+      data: {
+        totalTasks,
+        completedTasks,
+        incompleteTasks: totalTasks - completedTasks,
+        completionRate: totalTasks
+          ? Math.round((completedTasks / totalTasks) * 100)
+          : 0,
+        completedTaskItems,
+        incompleteTaskItems,
+      },
+    };
+  } catch {
+    return { success: false, message: "Failed to fetch task completion stats" };
+  }
+}
 
 export async function getCalendarTasks(): Promise<
   ApiResponse<TaskWithSubject[]>
