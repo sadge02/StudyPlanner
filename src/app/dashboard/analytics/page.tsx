@@ -1,8 +1,11 @@
+import { AnalyticsPeriodSelector } from "@/components/analytics/AnalyticsPeriodSelector";
 import { ProductivityChart } from "@/components/analytics/ProductivityChart";
+import { StudyTimeTrendChart } from "@/components/analytics/StudyTimeTrendChart";
 import { TaskCompletionChart } from "@/components/analytics/TaskCompletionChart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getStudyStats } from "@/lib/actions/session.actions";
 import { getTaskCompletionStats } from "@/lib/actions/task.actions";
+import type { StudyStats, StudyStatsPeriod } from "@/types";
 
 function formatDuration(seconds: number) {
   if (seconds === 0) return "0m";
@@ -16,12 +19,24 @@ function formatDuration(seconds: number) {
   return `${hours}h ${minutes}m`;
 }
 
-const emptyStats = {
+const validPeriods: StudyStatsPeriod[] = ["week", "month", "year", "all"];
+
+function parsePeriod(period?: string): StudyStatsPeriod {
+  return validPeriods.includes(period as StudyStatsPeriod)
+    ? (period as StudyStatsPeriod)
+    : "week";
+}
+
+const emptyStats: StudyStats = {
   totalHours: 0,
   sessionsCount: 0,
   averageSessionDuration: 0,
   bySubject: {},
   timeBySubject: [],
+  trends: [],
+  currentStreakDays: 0,
+  longestStreakDays: 0,
+  period: "week",
 };
 
 const emptyTaskStats = {
@@ -31,9 +46,15 @@ const emptyTaskStats = {
   completionRate: 0,
 };
 
-export default async function AnalyticsPage() {
+export default async function AnalyticsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ period?: string }>;
+}) {
+  const params = await searchParams;
+  const period = parsePeriod(params?.period);
   const [statsResponse, taskStatsResponse] = await Promise.all([
-    getStudyStats(),
+    getStudyStats(period),
     getTaskCompletionStats(),
   ]);
   const stats = statsResponse.data ?? emptyStats;
@@ -41,13 +62,17 @@ export default async function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="font-serif text-3xl font-semibold tracking-tight">
-          Analytics
-        </h1>
-        <p className="max-w-3xl text-sm text-muted-foreground">
-          See how your logged study time is distributed across subjects.
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="space-y-2">
+          <h1 className="font-serif text-3xl font-semibold tracking-tight">
+            Analytics
+          </h1>
+          <p className="max-w-3xl text-sm text-muted-foreground">
+            See how your logged study time is distributed across subjects.
+          </p>
+        </div>
+
+        <AnalyticsPeriodSelector period={stats.period} />
       </div>
 
       {!statsResponse.success && statsResponse.message ? (
@@ -62,7 +87,7 @@ export default async function AnalyticsPage() {
         </div>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm text-muted-foreground">
@@ -98,8 +123,25 @@ export default async function AnalyticsPage() {
             {formatDuration(stats.averageSessionDuration)}
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm text-muted-foreground">
+              Streaks
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            <div className="text-2xl font-semibold">
+              {stats.currentStreakDays}d
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Longest: {stats.longestStreakDays}d
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
+      <StudyTimeTrendChart data={stats.trends} period={stats.period} />
       <ProductivityChart data={stats.timeBySubject} />
       <TaskCompletionChart stats={taskStats} />
     </div>
