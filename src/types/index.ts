@@ -404,6 +404,15 @@ export interface StudyStats {
   sessionsCount: number;
   averageSessionDuration: number;
   bySubject: Record<string, number>;
+  timeBySubject: SubjectStudyTime[];
+}
+
+export interface SubjectStudyTime {
+  subjectName: string;
+  durationSeconds: number;
+  durationHours: number;
+  sessionsCount: number;
+  color: string;
 }
 
 export interface Dashboard {
