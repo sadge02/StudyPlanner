@@ -1,5 +1,6 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { auth } from "@/lib/auth";
+import { getActiveStudySession } from "@/lib/actions/session.actions";
 import { redirect } from "next/navigation";
 
 export default async function DashboardLayout({
@@ -13,8 +14,16 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
+  const activeSessionResponse = await getActiveStudySession();
+  const activeStudySession = activeSessionResponse.data
+    ? {
+        id: activeSessionResponse.data.id,
+        startTime: activeSessionResponse.data.startTime.toISOString(),
+      }
+    : null;
+
   return (
-    <AppShell user={session.user}>
+    <AppShell activeStudySession={activeStudySession} user={session.user}>
       {children}
     </AppShell>
   );

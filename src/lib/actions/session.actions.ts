@@ -110,6 +110,35 @@ export async function startStudySession(data: {
   }
 }
 
+export async function getActiveStudySession(): Promise<
+  ApiResponse<StudyTimerSession | null>
+> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const activeSession = await prisma.studySession.findFirst({
+      where: {
+        userId: session.user.id,
+        endTime: null,
+      },
+      select: {
+        id: true,
+        startTime: true,
+        subjectId: true,
+        taskId: true,
+      },
+      orderBy: { startTime: "desc" },
+    });
+
+    return { success: true, data: activeSession };
+  } catch {
+    return { success: false, message: "Failed to fetch active study session" };
+  }
+}
+
 export async function stopStudySession(
   id: string,
 ): Promise<ApiResponse<StudyTimerSession>> {

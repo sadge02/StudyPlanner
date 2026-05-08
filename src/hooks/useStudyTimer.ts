@@ -11,6 +11,16 @@ function secondsSince(startTime: Date) {
   return Math.max(0, Math.floor((Date.now() - startTime.getTime()) / 1000));
 }
 
+function emitTimerChange(session: StudyTimerSession | null) {
+  window.dispatchEvent(
+    new CustomEvent("study-timer-change", {
+      detail: session
+        ? { id: session.id, startTime: session.startTime.toISOString() }
+        : null,
+    }),
+  );
+}
+
 export function useStudyTimer() {
   const [currentSession, setCurrentSession] =
     useState<StudyTimerSession | null>(null);
@@ -47,6 +57,7 @@ export function useStudyTimer() {
       setElapsedBeforePause(0);
       setElapsed(0);
       setIsPaused(false);
+      emitTimerChange(response.data);
     });
   };
 
@@ -81,6 +92,7 @@ export function useStudyTimer() {
       setElapsedBeforePause(0);
       setElapsed(0);
       setIsPaused(false);
+      emitTimerChange(null);
     });
   };
 
