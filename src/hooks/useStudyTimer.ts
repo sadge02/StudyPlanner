@@ -11,11 +11,19 @@ function secondsSince(startTime: Date) {
   return Math.max(0, Math.floor((Date.now() - startTime.getTime()) / 1000));
 }
 
-function emitTimerChange(session: StudyTimerSession | null) {
+function emitTimerChange(
+  session: StudyTimerSession | null,
+  options?: { elapsedSeconds?: number; isPaused?: boolean; startTime?: Date },
+) {
   window.dispatchEvent(
     new CustomEvent("study-timer-change", {
       detail: session
-        ? { id: session.id, startTime: session.startTime.toISOString() }
+        ? {
+            id: session.id,
+            elapsedSeconds: options?.elapsedSeconds,
+            isPaused: options?.isPaused,
+            startTime: (options?.startTime ?? session.startTime).toISOString(),
+          }
         : null,
     }),
   );
@@ -69,14 +77,24 @@ export function useStudyTimer(initialSession: StudyTimerSession | null) {
     if (!currentSession) return;
 
     if (isPaused) {
-      setStartedAt(new Date());
+      const resumedAt = new Date();
+      setStartedAt(resumedAt);
       setIsPaused(false);
+      emitTimerChange(currentSession, {
+        elapsedSeconds: elapsedBeforePause,
+        isPaused: false,
+        startTime: new Date(Date.now() - elapsedBeforePause * 1000),
+      });
       return;
     }
 
     setElapsedBeforePause(elapsed);
     setStartedAt(null);
     setIsPaused(true);
+    emitTimerChange(currentSession, {
+      elapsedSeconds: elapsed,
+      isPaused: true,
+    });
   };
 
   const stopTimer = () => {
