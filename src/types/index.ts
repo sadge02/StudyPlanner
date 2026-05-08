@@ -431,6 +431,14 @@ export interface StudyTimeTrend {
 export interface StudyTimerSession {
   id: string;
   startTime: Date;
+  subjectId: string | null;
+  taskId: string | null;
+}
+
+export interface StudyTimerTaskOption {
+  id: string;
+  title: string;
+  status: TaskStatus;
 }
 
 export interface TaskCompletionStats {

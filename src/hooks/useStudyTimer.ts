@@ -33,10 +33,10 @@ export function useStudyTimer() {
     return () => window.clearInterval(interval);
   }, [elapsedBeforePause, isPaused, startedAt]);
 
-  const startTimer = () => {
+  const startTimer = (data: { subjectId?: string; taskId?: string }) => {
     setErrorMessage(null);
     startTransition(async () => {
-      const response = await startStudySession();
+      const response = await startStudySession(data);
       if (!response.success || !response.data) {
         setErrorMessage(response.message ?? "Failed to start timer");
         return;

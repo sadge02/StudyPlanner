@@ -14,6 +14,7 @@ import {
   TaskCompletionItem,
   TaskCompletionStats,
   TaskStatus,
+  StudyTimerTaskOption,
   TaskWithSubject,
 } from "@/types";
 import { revalidatePath } from "next/cache";
@@ -73,6 +74,37 @@ export async function getTaskCompletionStats(): Promise<
     };
   } catch {
     return { success: false, message: "Failed to fetch task completion stats" };
+  }
+}
+
+export async function getStudyTimerTasks(): Promise<
+  ApiResponse<StudyTimerTaskOption[]>
+> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const tasks = await prisma.task.findMany({
+      where: { userId: session.user.id },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+      },
+      orderBy: [{ status: "asc" }, { title: "asc" }],
+    });
+
+    return {
+      success: true,
+      data: tasks.map((task) => ({
+        ...task,
+        status: task.status as TaskStatus,
+      })),
+    };
+  } catch {
+    return { success: false, message: "Failed to fetch timer tasks" };
   }
 }
 

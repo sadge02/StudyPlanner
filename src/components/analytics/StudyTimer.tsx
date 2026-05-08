@@ -1,6 +1,7 @@
 "use client";
 
 import { Pause, Play, Square } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,7 +10,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useStudyTimer } from "@/hooks/useStudyTimer";
+import type { StudyTimerTaskOption, Subject } from "@/types";
+
+type StudyTimerProps = {
+  subjects: Subject[];
+  tasks: StudyTimerTaskOption[];
+};
 
 function formatElapsed(seconds: number) {
   const hours = Math.floor(seconds / 3600);
@@ -21,7 +35,9 @@ function formatElapsed(seconds: number) {
     .join(":");
 }
 
-export function StudyTimer() {
+export function StudyTimer({ subjects, tasks }: StudyTimerProps) {
+  const [subjectId, setSubjectId] = useState("none");
+  const [taskId, setTaskId] = useState("none");
   const {
     elapsed,
     errorMessage,
@@ -32,6 +48,13 @@ export function StudyTimer() {
     startTimer,
     stopTimer,
   } = useStudyTimer();
+
+  const handleStart = () => {
+    startTimer({
+      subjectId: subjectId === "none" ? undefined : subjectId,
+      taskId: taskId === "none" ? undefined : taskId,
+    });
+  };
 
   return (
     <Card>
@@ -49,6 +72,44 @@ export function StudyTimer() {
           </div>
         </div>
 
+        <div className="grid gap-3 md:grid-cols-2">
+          <Select
+            value={subjectId}
+            onValueChange={setSubjectId}
+            disabled={isActive || isLoading}
+          >
+            <SelectTrigger className="w-full bg-background">
+              <SelectValue placeholder="Subject" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">No subject</SelectItem>
+              {subjects.map((subject) => (
+                <SelectItem key={subject.id} value={subject.id}>
+                  {subject.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={taskId}
+            onValueChange={setTaskId}
+            disabled={isActive || isLoading}
+          >
+            <SelectTrigger className="w-full bg-background">
+              <SelectValue placeholder="Task" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">No task</SelectItem>
+              {tasks.map((task) => (
+                <SelectItem key={task.id} value={task.id}>
+                  {task.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         {errorMessage ? (
           <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
             {errorMessage}
@@ -56,7 +117,7 @@ export function StudyTimer() {
         ) : null}
 
         <div className="flex flex-wrap gap-2">
-          <Button onClick={startTimer} disabled={isActive || isLoading}>
+          <Button onClick={handleStart} disabled={isActive || isLoading}>
             <Play />
             Start
           </Button>

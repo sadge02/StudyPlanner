@@ -39,7 +39,10 @@ const FALLBACK_SUBJECT_COLORS = [
   "#db2777",
 ];
 
-export async function startStudySession(): Promise<
+export async function startStudySession(data: {
+  subjectId?: string;
+  taskId?: string;
+}): Promise<
   ApiResponse<StudyTimerSession>
 > {
   try {
@@ -56,6 +59,8 @@ export async function startStudySession(): Promise<
       select: {
         id: true,
         startTime: true,
+        subjectId: true,
+        taskId: true,
       },
       orderBy: { startTime: "desc" },
     });
@@ -64,14 +69,38 @@ export async function startStudySession(): Promise<
       return { success: true, data: activeSession };
     }
 
+    if (data.subjectId) {
+      const subject = await prisma.subject.findUnique({
+        where: { id: data.subjectId },
+        select: { userId: true },
+      });
+      if (!subject || subject.userId !== session.user.id) {
+        return { success: false, message: "Subject not found or unauthorized" };
+      }
+    }
+
+    if (data.taskId) {
+      const task = await prisma.task.findUnique({
+        where: { id: data.taskId },
+        select: { userId: true },
+      });
+      if (!task || task.userId !== session.user.id) {
+        return { success: false, message: "Task not found or unauthorized" };
+      }
+    }
+
     const studySession = await prisma.studySession.create({
       data: {
         startTime: new Date(),
         userId: session.user.id,
+        subjectId: data.subjectId,
+        taskId: data.taskId,
       },
       select: {
         id: true,
         startTime: true,
+        subjectId: true,
+        taskId: true,
       },
     });
 
@@ -121,6 +150,8 @@ export async function stopStudySession(
       select: {
         id: true,
         startTime: true,
+        subjectId: true,
+        taskId: true,
       },
     });
 
