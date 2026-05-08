@@ -13,9 +13,16 @@ import {
   subDays,
   subMonths,
 } from "date-fns";
+import { revalidatePath } from "next/cache";
 import { auth } from "../auth";
 import { prisma } from "../db";
-import type { ApiResponse, StudyStats, StudyStatsPeriod, StudyTimeTrend } from "@/types";
+import type {
+  ApiResponse,
+  StudyStats,
+  StudyStatsPeriod,
+  StudyTimeTrend,
+  StudyTimerSession,
+} from "@/types";
 
 /**
  * Study Session Server Actions
@@ -31,6 +38,98 @@ const FALLBACK_SUBJECT_COLORS = [
   "#0891b2",
   "#db2777",
 ];
+
+export async function startStudySession(): Promise<
+  ApiResponse<StudyTimerSession>
+> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const activeSession = await prisma.studySession.findFirst({
+      where: {
+        userId: session.user.id,
+        endTime: null,
+      },
+      select: {
+        id: true,
+        startTime: true,
+      },
+      orderBy: { startTime: "desc" },
+    });
+
+    if (activeSession) {
+      return { success: true, data: activeSession };
+    }
+
+    const studySession = await prisma.studySession.create({
+      data: {
+        startTime: new Date(),
+        userId: session.user.id,
+      },
+      select: {
+        id: true,
+        startTime: true,
+      },
+    });
+
+    return { success: true, data: studySession };
+  } catch {
+    return { success: false, message: "Failed to start study session" };
+  }
+}
+
+export async function stopStudySession(
+  id: string,
+): Promise<ApiResponse<StudyTimerSession>> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const existingSession = await prisma.studySession.findUnique({
+      where: { id },
+      select: {
+        userId: true,
+        startTime: true,
+        endTime: true,
+      },
+    });
+
+    if (!existingSession || existingSession.userId !== session.user.id) {
+      return { success: false, message: "Study session not found" };
+    }
+
+    if (existingSession.endTime) {
+      return { success: false, message: "Study session already stopped" };
+    }
+
+    const stopTime = new Date();
+    const duration = Math.max(
+      0,
+      Math.round((stopTime.getTime() - existingSession.startTime.getTime()) / 1000),
+    );
+    const studySession = await prisma.studySession.update({
+      where: { id },
+      data: {
+        endTime: stopTime,
+        duration,
+      },
+      select: {
+        id: true,
+        startTime: true,
+      },
+    });
+
+    revalidatePath("/dashboard/analytics");
+    return { success: true, data: studySession };
+  } catch {
+    return { success: false, message: "Failed to stop study session" };
+  }
+}
 
 const STUDY_STAT_PERIODS: StudyStatsPeriod[] = ["week", "month", "year", "all"];
 

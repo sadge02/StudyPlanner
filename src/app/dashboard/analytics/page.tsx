@@ -1,6 +1,7 @@
 import { AnalyticsPeriodSelector } from "@/components/analytics/AnalyticsPeriodSelector";
 import { ProductivityChart } from "@/components/analytics/ProductivityChart";
 import { StudyTimeTrendChart } from "@/components/analytics/StudyTimeTrendChart";
+import { StudyTimer } from "@/components/analytics/StudyTimer";
 import { TaskCompletionChart } from "@/components/analytics/TaskCompletionChart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getStudyStats } from "@/lib/actions/session.actions";
@@ -143,6 +144,7 @@ export default async function AnalyticsPage({
         </Card>
       </div>
 
+      <StudyTimer />
       <StudyTimeTrendChart data={stats.trends} period={stats.period} />
       <ProductivityChart data={stats.timeBySubject} />
       <TaskCompletionChart stats={taskStats} />

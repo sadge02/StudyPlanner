@@ -428,6 +428,11 @@ export interface StudyTimeTrend {
   sessionsCount: number;
 }
 
+export interface StudyTimerSession {
+  id: string;
+  startTime: Date;
+}
+
 export interface TaskCompletionStats {
   totalTasks: number;
   completedTasks: number;
