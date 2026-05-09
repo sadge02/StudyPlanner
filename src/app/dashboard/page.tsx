@@ -3,6 +3,7 @@ import NextClassBanner from "@/components/dashboard/NextClassBanner";
 import GeneralTodosWidget from "@/components/dashboard/GeneralTodosWidget";
 import { auth } from "@/lib/auth";
 import { getTodaysTasks, getUserTasks } from "@/lib/actions/task.actions";
+import SubjectList from "@/components/dashboard/MySubjects/SubjectList";
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -40,6 +41,7 @@ export default async function DashboardPage() {
         {/* Left column */}
         <div className="lg:col-span-2 flex flex-col gap-4">
           <TodaysBoard initialTasks={todaysTasks} />
+          <SubjectList />
         </div>
 
         {/* Right column */}

@@ -29,6 +29,46 @@ export async function getSubjects(): Promise<ApiResponse<Subject[]>> {
   }
 }
 
+export type SubjectListStatsItem = Subject & {
+  _count: { tasks: number };
+  completedTasks: number;
+};
+
+export async function getUserSubjectsStats(): Promise<
+  ApiResponse<SubjectListStatsItem[]>
+> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const subjects = await prisma.subject.findMany({
+      where: { userId: session.user.id },
+      orderBy: { createdAt: "desc" },
+      include: {
+        _count: {
+          select: { tasks: true },
+        },
+        tasks: {
+          where: { status: "DONE" },
+          select: { id: true },
+        },
+      },
+    });
+
+    return {
+      success: true,
+      data: subjects.map((s) => ({
+        ...s,
+        completedTasks: s.tasks.length,
+      })) as SubjectListStatsItem[],
+    };
+  } catch {
+    return { success: false, message: "Failed to load subjects" };
+  }
+}
+
 export async function createSubject(
   data: CreateSubjectInput,
 ): Promise<ApiResponse<Subject>> {

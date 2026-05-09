@@ -56,7 +56,7 @@ const TodaysBoard = ({ initialTasks }: Props) => {
         {tasks.map((task) => (
           <div
             key={task.id}
-            className="flex items-center gap-3 p-3 rounded-lg border bg-background shadow"
+            className="flex items-center gap-3 p-3 rounded-lg border shadow"
           >
             <Checkbox
               checked={task.status === "DONE"}
@@ -69,11 +69,6 @@ const TodaysBoard = ({ initialTasks }: Props) => {
               >
                 {task.title}
               </span>
-              {task.subjectId && (
-                <span className="text-xs text-muted-foreground truncate">
-                  {task.subjectId}
-                </span>
-              )}
             </div>
             <Badge className={`shadow-sm ${priorityColor[task.priority]}`}>
               {task.priority}
