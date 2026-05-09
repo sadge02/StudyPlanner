@@ -32,7 +32,7 @@ type TaskFormInput = z.input<typeof createTaskSchema>;
 type TaskFormOutput = z.output<typeof createTaskSchema>;
 
 type Priority = "LOW" | "MEDIUM" | "HIGH";
-type Status = "TODO" | "IN_PROGRESS" | "DONE" | "BLOCKED";
+type Status = "TODO" | "IN_PROGRESS" | "DONE";
 
 type TaskFormDefaults = {
   title?: string;
