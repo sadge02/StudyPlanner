@@ -112,7 +112,7 @@ const TodoList = ({ initialTasks }: Props) => {
   return (
     <div className="flex flex-col gap-6 p-6 max-w-3xl">
       {/* Quick add card */}
-      <div className="rounded-lg border bg-card p-4 flex flex-col gap-3">
+      <div className="rounded-lg border bg-card p-4 flex flex-col gap-3 shadow">
         <div className="flex items-center gap-2">
           <CheckSquare size={18} className="text-muted-foreground shrink-0" />
           <Input
@@ -166,7 +166,9 @@ const TodoList = ({ initialTasks }: Props) => {
         <div className="flex items-center gap-2">
           <h2 className="font-semibold text-lg">Current</h2>
           <span className="text-sm text-muted-foreground">
-            {current.length}
+            <Badge variant="secondary" className="text-xs shadow-sm">
+              {current.length}
+            </Badge>
           </span>
         </div>
         {current.length === 0 && (

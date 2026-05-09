@@ -1,8 +1,10 @@
 import KanbanBoard from "@/components/kanban/KanbanBoard";
-import { Button } from "@/components/ui/button";
+import TodoList from "@/components/todos/TodoList";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getProjectTasks } from "@/lib/actions/task.actions";
 import { KanbanColumn } from "@/types";
+import { LayoutGrid, ListTodo } from "lucide-react";
 
 export const initialColumns: KanbanColumn[] = [
   { id: "todo", title: "TODO" },
@@ -12,34 +14,49 @@ export const initialColumns: KanbanColumn[] = [
 
 // TODO: Add project display and switch
 export default async function KanbanPage() {
-  const projectId = "cmoxdtnef0008lwz7ytyzz8kf"; // TODO: get from URL or context
+  const projectId = "cmoxdtnef0008lwz7ytyzz8kf";
   const response = await getProjectTasks(projectId);
   const initialTasks = response.data ?? [];
 
-  console.log("ascascascsa", initialTasks);
-
   return (
-    <div className="flex flex-col h-full gap-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-2">
-          <h1 className="font-serif text-3xl font-semibold tracking-tight">
-            Kanban Board
-          </h1>
-          <p className="max-w-3xl text-sm text-muted-foreground">
-            Drag and drop tasks to update their state
-          </p>
+    <div className="flex flex-col h-full p-6 gap-4 items-center">
+      <Tabs defaultValue="kanban" className="flex flex-col gap-8">
+        <div className="flex flex-col items-center gap-4">
+          <TabsList className="h-11 shadow px-4">
+            <TabsTrigger value="kanban" className="px-6 h-9 text-sm gap-2">
+              <LayoutGrid size={16} />
+              Kanban Board
+            </TabsTrigger>
+            <TabsTrigger value="todos" className="px-6 h-9 text-sm gap-2">
+              <ListTodo size={16} />
+              General TODOs
+            </TabsTrigger>
+          </TabsList>
         </div>
 
-        <Button />
-      </div>
+        <TabsContent value="kanban" className="flex flex-col gap-8">
+          <p className="text-md text-muted-foreground text-center">
+            Drag and drop tasks between columns to update their status. Add
+            custom columns to fit your workflow.
+          </p>
+          <Separator />
+          <KanbanBoard
+            initialColumns={initialColumns}
+            initialTasks={initialTasks}
+            projectId={projectId}
+          />
+        </TabsContent>
 
-      <Separator />
+        <TabsContent value="todos" className="flex flex-col gap-8">
+          <p className="text-md text-muted-foreground text-center">
+            Manage your personal tasks and miscellaneous to-dos that aren't tied
+            to any subject or project.
+          </p>
+          <Separator />
 
-      <KanbanBoard
-        initialColumns={initialColumns}
-        initialTasks={initialTasks}
-        projectId={projectId}
-      />
+          <TodoList initialTasks={[]} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

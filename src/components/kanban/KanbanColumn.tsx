@@ -32,7 +32,7 @@ const KanbanColumn = ({
     <div className="flex flex-col gap-3 w-fit min-w-84">
       <div className="flex items-center gap-2 px-1 justify-center">
         <span className="font-semibold text-md">{column.title}</span>
-        <Badge variant="secondary" className="text-xs">
+        <Badge variant="secondary" className="text-xs shadow-sm">
           {tasks.length}
         </Badge>
       </div>
