@@ -43,7 +43,7 @@ const KanbanColumn = ({
       >
         <div
           ref={setNodeRef}
-          className="flex flex-col gap-2 min-h-25 h-fit rounded-lg p-2 bg-muted/90 shadow"
+          className="flex flex-col gap-2 min-h-25 h-fit rounded-2xl p-2 bg-muted/90 shadow"
         >
           {tasks.map((task) => (
             <KanbanCard key={task.id} task={task} onDelete={onTaskDelete} />
