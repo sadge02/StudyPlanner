@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { ClipboardCheck, Plus } from "lucide-react";
 import { Button } from "../ui/button";
-import { Separator } from "../ui/separator";
 
 const priorityColor: Record<string, string> = {
   HIGH: "bg-orange-500 text-white hover:bg-orange-500",
@@ -38,7 +37,7 @@ const TodaysBoard = ({ initialTasks }: Props) => {
 
   return (
     <div className="rounded-xl border bg-card p-4 flex flex-col gap-4 shadow">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-center">
         <div className="flex items-center gap-2">
           <div className="font-semibold flex gap-2 items-center">
             <ClipboardCheck size={20} className="text-blue-600" />
@@ -48,26 +47,16 @@ const TodaysBoard = ({ initialTasks }: Props) => {
             {tasks.length}
           </Badge>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          className="text-primary hover:text-primary text-xs shadow-sm"
-          onClick={() => router.push("/dashboard/kanban")}
-        >
-          View Calendar
-        </Button>
       </div>
 
-      <Separator />
-
-      <div className="flex flex-col gap-2 max-h-64 overflow-y-auto">
+      <div className="flex flex-col gap-2 max-h-64 overflow-y-auto p-2">
         {tasks.length === 0 && (
           <p className="text-sm text-muted-foreground">No tasks due today.</p>
         )}
         {tasks.map((task) => (
           <div
             key={task.id}
-            className="flex items-center gap-3 p-3 rounded-lg border bg-background"
+            className="flex items-center gap-3 p-3 rounded-lg border bg-background shadow"
           >
             <Checkbox
               checked={task.status === "DONE"}

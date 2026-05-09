@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -75,19 +74,10 @@ const TasksPageOverview = ({ projects }: Props) => {
         </div>
 
         <TabsContent value="kanban" className="flex flex-col gap-8">
-          <p className="text-md text-muted-foreground text-center">
-            Drag and drop tasks between columns to update their status. Add
-            custom columns to fit your workflow.
-          </p>
-          <Separator />
           <KanbanBoard initialTasks={tasks} projectId={selectedProjectId} />
         </TabsContent>
 
         <TabsContent value="todos" className="flex flex-col gap-8">
-          <p className="text-md text-muted-foreground text-center">
-            Manage your personal tasks and miscellaneous to-dos.
-          </p>
-          <Separator />
           <TodoList initialTasks={tasks} />
         </TabsContent>
       </Tabs>
