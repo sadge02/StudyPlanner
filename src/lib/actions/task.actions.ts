@@ -1,5 +1,7 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+
 import { auth } from "../auth";
 import { prisma } from "../db";
 import {
@@ -16,7 +18,37 @@ import {
   TaskStatus,
   TaskWithSubject,
 } from "@/types";
-import { revalidatePath } from "next/cache";
+
+export type TaskDetail = TaskWithSubject & {
+  subTasks: Array<Task & { subTasks: Task[] }>;
+};
+
+const MAX_TASK_DEPTH = 3;
+
+async function getTaskDepth(taskId: string): Promise<number> {
+  let depth = 1;
+  let currentId: string | null = taskId;
+  const seen = new Set<string>();
+  while (currentId) {
+    if (seen.has(currentId)) return Number.POSITIVE_INFINITY;
+    seen.add(currentId);
+    if (depth > MAX_TASK_DEPTH) return depth;
+    const t: { parentId: string | null } | null = await prisma.task.findUnique({
+      where: { id: currentId },
+      select: { parentId: true },
+    });
+    if (!t?.parentId) return depth;
+    currentId = t.parentId;
+    depth++;
+  }
+  return depth;
+}
+
+function revalidateTaskPaths() {
+  revalidatePath("/dashboard/tasks");
+  revalidatePath("/dashboard/kanban");
+  revalidatePath("/dashboard/subjects");
+}
 import { checkProjectAccess } from "../utils/access";
 
 export async function getTaskCompletionStats(): Promise<
@@ -112,27 +144,6 @@ export async function getCalendarTasks(): Promise<
   }
 }
 
-export async function getUserTasks(): Promise<ApiResponse<Task[]>> {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return { success: false, message: "Unauthorized" };
-    }
-
-    const tasks = await prisma.task.findMany({
-      where: {
-        userId: session.user.id,
-        projectId: null, // personal tasks only
-      },
-      orderBy: { deadline: "asc" },
-    });
-
-    return { success: true, data: tasks as unknown as Task[] };
-  } catch {
-    return { success: false, message: "Failed to fetch tasks" };
-  }
-}
-
 export async function getProjectTasks(
   projectId: string,
 ): Promise<ApiResponse<Task[]>> {
@@ -178,17 +189,25 @@ export async function createTask(
       };
     }
 
+    if (validatedData.data.parentId) {
+      const parentDepth = await getTaskDepth(validatedData.data.parentId);
+      if (parentDepth >= MAX_TASK_DEPTH) {
+        return {
+          success: false,
+          message: `Maximum nesting depth (${MAX_TASK_DEPTH}) reached`,
+        };
+      }
+    }
+
     const task = await prisma.task.create({
       data: {
         ...validatedData.data,
-        status: "TODO",
         userId: session.user.id,
       },
     });
 
-    revalidatePath("/dashboard/tasks");
-    revalidatePath("/dashboard/kanban");
-    return { success: true, data: task as unknown as Task };
+    revalidateTaskPaths();
+    return { success: true, data: task as Task };
   } catch {
     return { success: false, message: "Failed to create task" };
   }
@@ -230,13 +249,12 @@ export async function updateTask(
       data: validatedData.data,
     });
 
-    revalidatePath("/dashboard/tasks");
-    revalidatePath("/dashboard/kanban");
+    revalidateTaskPaths();
     revalidatePath("/dashboard/projects");
     if (existingTask.projectId) {
       revalidatePath(`/dashboard/projects/${existingTask.projectId}`);
     }
-    return { success: true, data: task as unknown as Task };
+    return { success: true, data: task as Task };
   } catch {
     return { success: false, message: "Failed to update task" };
   }
@@ -254,16 +272,70 @@ export async function deleteTask(id: string): Promise<ApiResponse<null>> {
       return { success: false, message: "Task not found or unauthorized" };
     }
 
-    // Since tasks can have subtasks, clean them up
     await prisma.$transaction([
       prisma.task.deleteMany({ where: { parentId: id } }),
       prisma.task.delete({ where: { id } }),
     ]);
 
-    revalidatePath("/dashboard/tasks");
-    revalidatePath("/dashboard/kanban");
+    revalidateTaskPaths();
     return { success: true };
   } catch {
     return { success: false, message: "Failed to delete task" };
+  }
+}
+
+export async function getTaskById(
+  id: string,
+): Promise<ApiResponse<TaskDetail>> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const task = await prisma.task.findUnique({
+      where: { id },
+      include: {
+        subject: true,
+        subTasks: {
+          include: {
+            subTasks: true,
+          },
+        },
+      },
+    });
+
+    if (!task || task.userId !== session.user.id) {
+      return { success: false, message: "Task not found or unauthorized" };
+    }
+
+    return { success: true, data: task as TaskDetail };
+  } catch {
+    return { success: false, message: "Failed to load task" };
+  }
+}
+
+export async function getUserTasks(
+  subjectId?: string,
+): Promise<ApiResponse<TaskWithSubject[]>> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const tasks = await prisma.task.findMany({
+      where: {
+        userId: session.user.id,
+        ...(subjectId ? { subjectId } : {}),
+      },
+      include: { subject: true },
+      orderBy: [{ deadline: "asc" }],
+    });
+
+    return { success: true, data: tasks as TaskWithSubject[] };
+  } catch (error) {
+    console.error("[getUserTasks] failed:", error);
+    return { success: false, message: "Failed to load tasks" };
   }
 }

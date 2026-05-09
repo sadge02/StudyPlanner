@@ -2,7 +2,11 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createTaskSchema, CreateTaskFormInput } from "@/schemas/task.schema";
+import type { z } from "zod";
+import { createTaskSchema } from "@/schemas/task.schema";
+
+type FormInput = z.input<typeof createTaskSchema>;
+type FormOutput = z.output<typeof createTaskSchema>;
 import {
   Dialog,
   DialogContent,
@@ -38,7 +42,7 @@ const CreateTaskDialog = ({ open, onOpenChange, task, projectId }: Props) => {
     setValue,
     reset,
     formState: { errors },
-  } = useForm<CreateTaskFormInput>({
+  } = useForm<FormInput, unknown, FormOutput>({
     resolver: zodResolver(createTaskSchema),
     defaultValues: {
       priority: task?.priority ?? "MEDIUM",
@@ -50,19 +54,19 @@ const CreateTaskDialog = ({ open, onOpenChange, task, projectId }: Props) => {
     },
   });
 
-  const onSubmit = async (data: CreateTaskFormInput) => {
+  const onSubmit = async (data: FormOutput) => {
     let response;
     if (task) {
       response = await updateTask(task.id, {
         ...data,
         projectId: projectId,
-        deadline: data.deadline ? new Date(data.deadline).toISOString() : null,
+        deadline: data.deadline ?? null,
       });
     } else {
       response = await createTask({
         ...data,
         projectId: projectId,
-        deadline: data.deadline ? new Date(data.deadline).toISOString() : null,
+        deadline: data.deadline ?? null,
       });
     }
 

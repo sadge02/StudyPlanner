@@ -8,7 +8,6 @@ import {
   type CreateSubjectInput,
   type UpdateSubjectInput,
 } from "@/schemas";
-import { ApiResponse, Subject } from "@/types";
 import { revalidatePath } from "next/cache";
 
 export async function getSubjects(): Promise<ApiResponse<Subject[]>> {
@@ -28,6 +27,12 @@ export async function getSubjects(): Promise<ApiResponse<Subject[]>> {
     return { success: false, message: "Failed to fetch subjects" };
   }
 }
+
+import { ApiResponse, Subject, SubjectWithRelations } from "@/types";
+
+export type SubjectListItem = Subject & {
+  _count: { tasks: number; events: number };
+};
 
 export async function createSubject(
   data: CreateSubjectInput,
@@ -119,3 +124,58 @@ export async function deleteSubject(id: string): Promise<ApiResponse<null>> {
     return { success: false, message: "Failed to delete subject" };
   }
 }
+
+
+export async function getUserSubjects(): Promise<ApiResponse<SubjectListItem[]>> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const subjects = await prisma.subject.findMany({
+      where: { userId: session.user.id },
+      orderBy: { createdAt: "desc" },
+      include: {
+        _count: {
+          select: { tasks: true, events: true },
+        },
+      },
+    });
+
+    return { success: true, data: subjects as SubjectListItem[] };
+  } catch {
+    return { success: false, message: "Failed to load subjects" };
+  }
+}
+
+export async function getSubjectById(id: string): Promise<ApiResponse<SubjectWithRelations>> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const subject = await prisma.subject.findUnique({
+      where: { id },
+      include: {
+        tasks: { orderBy: { deadline: "asc" } },
+        events: { orderBy: { startTime: "asc" } },
+        notes: { orderBy: { updatedAt: "desc" } },
+        studySessions: { orderBy: { startTime: "desc" } },
+      },
+    });
+
+    if (!subject || subject.userId !== session.user.id) {
+      return { success: false, message: "Subject not found or unauthorized" };
+    }
+
+    return {
+      success: true,
+      data: subject as SubjectWithRelations,
+    };
+  } catch {
+    return { success: false, message: "Failed to load subject" };
+  }
+}
+

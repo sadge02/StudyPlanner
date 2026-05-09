@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Task, KanbanColumn as Column } from "@/types";
+import { Task, KanbanColumn as Column, TaskStatus } from "@/types";
 import { DragStartEvent, DragOverEvent, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { deleteTask, updateTask } from "@/lib/actions/task.actions";
@@ -72,7 +72,7 @@ export function useKanbanDnd(initialTasks: Task[], columns: Column[]) {
     const task = tasks.find((t) => t.id === taskId);
 
     if (task) {
-      const response = await updateTask(taskId, { status: task.status });
+      const response = await updateTask(taskId, { status: task.status as TaskStatus });
 
       if (response.success) {
         toast.success("Task status updated");
