@@ -16,14 +16,29 @@ import { TASK_STATUS_OPTIONS } from "@/lib/constants";
 import type { Subject } from "@/types";
 import { useConfirm } from "@/components/ui/ConfirmDialog";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 type TaskFormInput = z.input<typeof createTaskSchema>;
 type TaskFormOutput = z.output<typeof createTaskSchema>;
+
+type Priority = "LOW" | "MEDIUM" | "HIGH";
+type Status = "TODO" | "IN_PROGRESS" | "DONE" | "BLOCKED";
 
 type TaskFormDefaults = {
   title?: string;
   description?: string | null;
-  priority?: "LOW" | "MEDIUM" | "HIGH";
-  status?: "TODO" | "IN_PROGRESS" | "DONE" | "BLOCKED";
+  priority?: Priority;
+  status?: Status;
   deadline?: Date | null;
   subjectId?: string | null;
   parentId?: string | null;
@@ -53,6 +68,8 @@ export function TaskForm({ subjects, taskId, defaultValues }: TaskFormProps) {
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<TaskFormInput, unknown, TaskFormOutput>({
     resolver: zodResolver(createTaskSchema),
@@ -67,6 +84,10 @@ export function TaskForm({ subjects, taskId, defaultValues }: TaskFormProps) {
       parentId: defaultValues?.parentId ?? "",
     },
   });
+
+  const status = watch("status");
+  const priority = watch("priority");
+  const subjectId = watch("subjectId");
 
   const onSubmit = async (data: CreateTaskInput) => {
     setServerError(null);
@@ -108,142 +129,157 @@ export function TaskForm({ subjects, taskId, defaultValues }: TaskFormProps) {
         className="w-full max-w-md space-y-4"
       >
         {serverError && (
-          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
             {serverError}
           </div>
         )}
 
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Title
-          </label>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor="task-title">Title</Label>
+          <Input
+            id="task-title"
             type="text"
             {...register("title")}
             placeholder="e.g. Binary Search Tree Implementation"
-            className="w-full rounded-md border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {errors.title && (
-            <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
+            <p className="text-sm text-destructive">{errors.title.message}</p>
           )}
         </div>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Description (optional)
-          </label>
-          <textarea
+        <div className="space-y-2">
+          <Label htmlFor="task-description">Description (optional)</Label>
+          <Textarea
+            id="task-description"
             {...register("description", {
               setValueAs: (v) => (v === "" ? null : v),
             })}
             rows={3}
             placeholder="Additional details, links, requirements..."
-            className="w-full rounded-md border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {errors.description && (
-            <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+            <p className="text-sm text-destructive">
+              {errors.description.message}
+            </p>
           )}
         </div>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Status
-          </label>
-          <select
-            {...register("status")}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <div className="space-y-2">
+          <Label>Status</Label>
+          <Select
+            value={status ?? "TODO"}
+            onValueChange={(v) =>
+              setValue("status", v as Status, { shouldValidate: true })
+            }
           >
-            {TASK_STATUS_OPTIONS.map((s) => (
-              <option key={s.value} value={s.value}>
-                {s.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TASK_STATUS_OPTIONS.map((s) => (
+                <SelectItem key={s.value} value={s.value}>
+                  {s.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {errors.status && (
-            <p className="mt-1 text-sm text-red-600">{errors.status.message}</p>
+            <p className="text-sm text-destructive">{errors.status.message}</p>
           )}
         </div>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Priority
-          </label>
-          <select
-            {...register("priority")}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <div className="space-y-2">
+          <Label>Priority</Label>
+          <Select
+            value={priority ?? "MEDIUM"}
+            onValueChange={(v) =>
+              setValue("priority", v as Priority, { shouldValidate: true })
+            }
           >
-            <option value="LOW">Low</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="HIGH">High</option>
-          </select>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="LOW">Low</SelectItem>
+              <SelectItem value="MEDIUM">Medium</SelectItem>
+              <SelectItem value="HIGH">High</SelectItem>
+            </SelectContent>
+          </Select>
           {errors.priority && (
-            <p className="mt-1 text-sm text-red-600">{errors.priority.message}</p>
+            <p className="text-sm text-destructive">
+              {errors.priority.message}
+            </p>
           )}
         </div>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Deadline (optional)
-          </label>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor="task-deadline">Deadline (optional)</Label>
+          <Input
+            id="task-deadline"
             type="date"
             {...register("deadline", {
               setValueAs: (v) => (v === "" || !v ? null : new Date(v)),
             })}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {errors.deadline && (
-            <p className="mt-1 text-sm text-red-600">{errors.deadline.message}</p>
+            <p className="text-sm text-destructive">
+              {errors.deadline.message}
+            </p>
           )}
         </div>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Subject (optional)
-          </label>
-          <select
-            {...register("subjectId")}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <div className="space-y-2">
+          <Label>Subject (optional)</Label>
+          <Select
+            value={subjectId || "none"}
+            onValueChange={(v) =>
+              setValue("subjectId", v === "none" ? "" : v, {
+                shouldValidate: true,
+              })
+            }
           >
-            <option value="">— None —</option>
-            {subjects.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="— None —" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">— None —</SelectItem>
+              {subjects.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {errors.subjectId && (
-            <p className="mt-1 text-sm text-red-600">{errors.subjectId.message}</p>
+            <p className="text-sm text-destructive">
+              {errors.subjectId.message}
+            </p>
           )}
         </div>
 
         <div className="flex flex-wrap justify-end gap-2">
-          <button
+          <Button
             type="button"
+            variant="outline"
             onClick={() => router.back()}
             disabled={isSubmitting}
-            className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
           >
             Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-white shadow-md transition-colors hover:bg-brand-hover disabled:opacity-50"
-          >
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
             <CopyPlus size={18} />
             {isSubmitting ? "Saving..." : isEdit ? "Update" : "Add Task"}
-          </button>
+          </Button>
           {isEdit && (
-            <button
+            <Button
               type="button"
+              variant="destructive"
               onClick={onDelete}
               disabled={isSubmitting}
-              className="flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-md transition-colors hover:bg-red-700 disabled:opacity-50"
             >
               <Trash2 size={18} />
               Delete
-            </button>
+            </Button>
           )}
         </div>
       </form>
