@@ -23,12 +23,12 @@ export default async function KanbanPage() {
       <Tabs defaultValue="kanban" className="flex flex-col gap-8">
         <div className="flex flex-col items-center gap-4">
           <TabsList className="h-11 shadow px-4">
-            <TabsTrigger value="kanban" className="px-6 h-9 text-sm gap-2">
-              <LayoutGrid size={16} />
+            <TabsTrigger value="kanban" className="px-6 h-8 text-sm gap-2">
+              <LayoutGrid size={16} className="text-blue-600" />
               Kanban Board
             </TabsTrigger>
-            <TabsTrigger value="todos" className="px-6 h-9 text-sm gap-2">
-              <ListTodo size={16} />
+            <TabsTrigger value="todos" className="px-6 h-8 text-sm gap-2">
+              <ListTodo size={16} className="text-blue-600" />
               General TODOs
             </TabsTrigger>
           </TabsList>
@@ -53,7 +53,6 @@ export default async function KanbanPage() {
             to any subject or project.
           </p>
           <Separator />
-
           <TodoList initialTasks={[]} />
         </TabsContent>
       </Tabs>
