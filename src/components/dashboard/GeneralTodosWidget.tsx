@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import { useState, useRef } from "react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { Separator } from "../ui/separator";
 
 type Props = {
   tasks: Task[];
@@ -124,6 +123,7 @@ const GeneralTodosWidget = ({ tasks: initialTasks }: Props) => {
             <Checkbox
               checked={task.status === "DONE"}
               onCheckedChange={() => handleToggle(task)}
+              className="shadow-sm"
             />
             <span className="truncate text-muted-foreground">{task.title}</span>
           </div>

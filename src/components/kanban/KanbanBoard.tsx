@@ -14,12 +14,17 @@ import KanbanCard from "./KanbanCard";
 import { useKanbanDnd } from "@/hooks/useKanbanDnd";
 
 type Props = {
-  initialColumns: Column[];
   initialTasks: Task[];
   projectId: string;
 };
 
-const KanbanBoard = ({ initialColumns, initialTasks, projectId }: Props) => {
+export const initialColumns: Column[] = [
+  { id: "todo", title: "TODO" },
+  { id: "in_progress", title: "In Progress" },
+  { id: "done", title: "Done" },
+];
+
+const KanbanBoard = ({ initialTasks, projectId }: Props) => {
   const {
     activeTask,
     handleDragStart,

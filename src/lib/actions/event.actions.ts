@@ -50,7 +50,6 @@ export async function getNextEvent(): Promise<
     if (!session?.user?.id) {
       return { success: false, message: "Unauthorized" };
     }
-
     const now = new Date();
 
     const event = await prisma.event.findFirst({

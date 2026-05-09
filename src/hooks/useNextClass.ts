@@ -19,7 +19,9 @@ export function useNextClass() {
 
   useEffect(() => {
     const fetchEvent = async () => {
+      console.log("fetching next event");
       const response = await getNextEvent();
+      console.log("next event response", response);
       setEvent(response.data ?? null);
     };
     fetchEvent();

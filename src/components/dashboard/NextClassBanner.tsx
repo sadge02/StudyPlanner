@@ -14,10 +14,10 @@ const NextClassBanner = () => {
     return (
       <div className="rounded-xl bg-muted p-4 flex flex-col gap-1 shadow">
         <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wide">
-          Next Class
+          Next Event
         </p>
         <p className="text-sm text-muted-foreground">
-          No upcoming classes today
+          No upcoming events today
         </p>
       </div>
     );

@@ -44,7 +44,9 @@ const TodaysBoard = ({ initialTasks }: Props) => {
             <ClipboardCheck size={20} className="text-blue-600" />
             Today&apos;s Board
           </div>
-          <Badge variant="secondary">{tasks.length}</Badge>
+          <Badge variant="secondary" className="shadow-sm">
+            {tasks.length}
+          </Badge>
         </div>
         <Button
           type="button"
@@ -69,6 +71,7 @@ const TodaysBoard = ({ initialTasks }: Props) => {
           >
             <Checkbox
               checked={task.status === "DONE"}
+              className="shadow-sm"
               onCheckedChange={() => handleToggle(task.id)}
             />
             <div className="flex flex-col flex-1 min-w-0">
@@ -83,7 +86,7 @@ const TodaysBoard = ({ initialTasks }: Props) => {
                 </span>
               )}
             </div>
-            <Badge className={priorityColor[task.priority]}>
+            <Badge className={`shadow-sm ${priorityColor[task.priority]}`}>
               {task.priority}
             </Badge>
           </div>
