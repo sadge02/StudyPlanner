@@ -208,8 +208,6 @@ export async function createTask(
       };
     }
 
-    console.log("HERE");
-
     const task = await prisma.task.create({
       data: {
         ...validatedData.data,
