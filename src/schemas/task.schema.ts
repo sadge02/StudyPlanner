@@ -2,15 +2,10 @@ import { z } from "zod";
 import { titleField, descriptionField, priorityEnum, cuidOrEmpty } from "./shared";
 
 export const taskStatusEnum = z
-  .enum(["TODO", "IN_PROGRESS", "DONE", "BLOCKED"])
+  .enum(["TODO", "IN_PROGRESS", "DONE"])
   .default("TODO");
 
-const taskStatusEnumNoDefault = z.enum([
-  "TODO",
-  "IN_PROGRESS",
-  "DONE",
-  "BLOCKED",
-]);
+const taskStatusEnumNoDefault = z.enum(["TODO", "IN_PROGRESS", "DONE"]);
 
 const priorityEnumNoDefault = z.enum(["LOW", "MEDIUM", "HIGH"]);
 

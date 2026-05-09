@@ -20,7 +20,6 @@ const STATUS_STYLES: Record<TaskStatus, string> = {
   TODO: "bg-blue-50 text-blue-700",
   IN_PROGRESS: "bg-indigo-50 text-indigo-700",
   DONE: "bg-green-50 text-green-700",
-  BLOCKED: "bg-red-50 text-red-700",
 };
 
 function formatDeadline(d: Date | null) {
