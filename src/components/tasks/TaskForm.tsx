@@ -126,7 +126,7 @@ export function TaskForm({ subjects, taskId, defaultValues }: TaskFormProps) {
       {dialog}
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-md space-y-4"
+        className="w-full max-w-md space-y-4 rounded-xl border bg-card p-6 shadow-sm"
       >
         {serverError && (
           <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
