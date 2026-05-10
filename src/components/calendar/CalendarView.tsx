@@ -23,10 +23,11 @@ import {
   startOfWeek,
 } from "date-fns";
 import { enUS } from "date-fns/locale";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { RRule, rrulestr } from "rrule";
 import { EventForm } from "@/components/events/EventForm";
+import { deleteEvent } from "@/lib/actions/event.actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -286,6 +287,8 @@ export function CalendarView({
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<CalendarRange | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<CalendarBlock | null>(null);
+  const [isDeletePending, startDeleteTransition] = useTransition();
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [currentView, setCurrentView] = useState<View>(Views.MONTH);
   const [visibleRange, setVisibleRange] = useState<CalendarRange>(() =>
@@ -474,7 +477,13 @@ export function CalendarView({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
+      <Dialog
+        open={detailsModalOpen}
+        onOpenChange={(open) => {
+          setDetailsModalOpen(open);
+          if (!open) setDeleteError(null);
+        }}
+      >
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>{selectedEvent?.title}</DialogTitle>
@@ -554,21 +563,50 @@ export function CalendarView({
             </div>
           ) : null}
 
+          {deleteError ? (
+            <p className="text-sm text-destructive">{deleteError}</p>
+          ) : null}
+
           <DialogFooter showCloseButton>
             {selectedEvent?.resource.kind === "event" ? (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setDetailsModalOpen(false);
-                  setSelectedSlot({
-                    start: selectedEvent.start,
-                    end: selectedEvent.end,
-                  });
-                  setCreateModalOpen(true);
-                }}
-              >
-                Duplicate as new event
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setDetailsModalOpen(false);
+                    setSelectedSlot({
+                      start: selectedEvent.start,
+                      end: selectedEvent.end,
+                    });
+                    setCreateModalOpen(true);
+                  }}
+                >
+                  Duplicate as new event
+                </Button>
+                <Button
+                  variant="destructive"
+                  disabled={isDeletePending}
+                  onClick={() => {
+                    setDeleteError(null);
+                    startDeleteTransition(async () => {
+                      const response = await deleteEvent(
+                        selectedEvent.resource.sourceId,
+                      );
+                      if (!response.success) {
+                        setDeleteError(
+                          response.message ?? "Failed to delete event",
+                        );
+                        return;
+                      }
+                      setDetailsModalOpen(false);
+                      setSelectedEvent(null);
+                      router.refresh();
+                    });
+                  }}
+                >
+                  {isDeletePending ? "Deleting..." : "Delete"}
+                </Button>
+              </>
             ) : null}
           </DialogFooter>
         </DialogContent>
