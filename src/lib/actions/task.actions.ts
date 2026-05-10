@@ -19,6 +19,36 @@ import {
 import { revalidatePath } from "next/cache";
 import { checkProjectAccess } from "../utils/access";
 
+export async function getTodaysTasks(): Promise<ApiResponse<Task[]>> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const tasks = await prisma.task.findMany({
+      where: {
+        userId: session.user.id,
+        deadline: {
+          gte: today,
+          lt: tomorrow,
+        },
+      },
+      orderBy: { deadline: "asc" },
+    });
+
+    return { success: true, data: tasks as unknown as Task[] };
+  } catch {
+    return { success: false, message: "Failed to fetch today's tasks" };
+  }
+}
+
 export async function getTaskCompletionStats(): Promise<
   ApiResponse<TaskCompletionStats>
 > {
@@ -230,6 +260,7 @@ export async function updateTask(
       data: validatedData.data,
     });
 
+    revalidatePath("/dashboard");
     revalidatePath("/dashboard/tasks");
     revalidatePath("/dashboard/kanban");
     revalidatePath("/dashboard/projects");

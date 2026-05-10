@@ -16,10 +16,10 @@ const AddTaskButton = ({ projectId }: Props) => {
     <>
       <Button
         variant="outline"
-        className="w-full mt-1 border-dashed text-muted-foreground h-10"
+        className="w-full mt-1 border-dashed text-muted-foreground h-10 shadow"
         onClick={() => setDialogOpen(true)}
       >
-        <Plus size={16} />
+        <Plus size={16} className="text-blue-600" />
         Add task
       </Button>
 
