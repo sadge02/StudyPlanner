@@ -111,7 +111,7 @@ const TodoList = ({ initialTasks }: Props) => {
   };
 
   return (
-    <div className="flex flex-col gap-6 p-6 pt-2 max-w-3xl">
+    <div className="flex flex-col gap-6 p-0 md:p-6 pt-2 max-w-3xl">
       {/* Quick add card */}
       <div className="rounded-lg border bg-card p-4 flex flex-col gap-3 shadow">
         <div className="flex items-center gap-2">
@@ -130,7 +130,7 @@ const TodoList = ({ initialTasks }: Props) => {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
-        <div className="flex items-center gap-4 pt-1">
+        <div className="flex flex-col md:flex-row md:items-center gap-4 pt-1">
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Priority:</span>
             <Select

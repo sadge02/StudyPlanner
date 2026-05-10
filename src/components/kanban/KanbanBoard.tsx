@@ -6,7 +6,8 @@ import {
   closestCorners,
   DndContext,
   DragOverlay,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -19,9 +20,9 @@ type Props = {
 };
 
 export const initialColumns: Column[] = [
-  { id: "todo", title: "TODO" },
-  { id: "in_progress", title: "In Progress" },
-  { id: "done", title: "Done" },
+  { id: "TODO", title: "TODO" },
+  { id: "IN_PROGRESS", title: "In Progress" },
+  { id: "DONE", title: "Done" },
 ];
 
 const KanbanBoard = ({ initialTasks, projectId }: Props) => {
@@ -35,7 +36,13 @@ const KanbanBoard = ({ initialTasks, projectId }: Props) => {
   } = useKanbanDnd(initialTasks, initialColumns);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(MouseSensor),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 8,
+      },
+    }),
   );
 
   return (
@@ -55,7 +62,7 @@ const KanbanBoard = ({ initialTasks, projectId }: Props) => {
         },
       }}
     >
-      <div className="flex flex-row gap-4 overflow-x-auto items-start">
+      <div className="flex gap-4 overflow-x-auto items-start flex-1 min-h-0 pb-4">
         {initialColumns.map((column, index) => (
           <KanbanColumn
             key={column.id}

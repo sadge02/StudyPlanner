@@ -42,17 +42,28 @@ const TasksPageOverview = ({ projects }: Props) => {
   }
 
   return (
-    <div className="flex flex-col h-full p-6 gap-4 items-center">
-      <Tabs defaultValue="kanban" className="flex flex-col gap-8">
-        <div className="flex justify-center gap-4">
+    <div className="flex flex-col h-full md:p-6 gap-4 items-center">
+      <Tabs
+        defaultValue="kanban"
+        className="flex flex-col md:items-center gap-4 md:gap-8 w-full h-full"
+      >
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-3">
           <TabsList className="h-11 shadow px-4">
-            <TabsTrigger value="kanban" className="px-6 h-8 text-sm gap-2">
+            <TabsTrigger
+              value="kanban"
+              className="px-3 md:px-6 h-8 text-sm gap-2"
+            >
               <LayoutGrid size={16} className="text-blue-600" />
-              Kanban Board
+              <span className="hidden sm:inline">Kanban Board</span>
+              <span className="sm:hidden">Kanban</span>
             </TabsTrigger>
-            <TabsTrigger value="todos" className="px-6 h-8 text-sm gap-2">
+            <TabsTrigger
+              value="todos"
+              className="px-3 md:px-6 h-8 text-sm gap-2"
+            >
               <ListTodo size={16} className="text-blue-600" />
-              General TODOs
+              <span className="hidden sm:inline">General TODOs</span>
+              <span className="sm:hidden">TODOs</span>
             </TabsTrigger>
           </TabsList>
 
@@ -60,7 +71,7 @@ const TasksPageOverview = ({ projects }: Props) => {
             value={selectedProjectId}
             onValueChange={setSelectedProjectId}
           >
-            <SelectTrigger className="w-64 shadow-sm">
+            <SelectTrigger className="w-full sm:w-64 shadow-sm">
               <SelectValue placeholder="Select project" />
             </SelectTrigger>
             <SelectContent>
@@ -73,11 +84,11 @@ const TasksPageOverview = ({ projects }: Props) => {
           </Select>
         </div>
 
-        <TabsContent value="kanban" className="flex flex-col gap-8">
+        <TabsContent value="kanban" className="flex flex-col gap-4 md:gap-8">
           <KanbanBoard initialTasks={tasks} projectId={selectedProjectId} />
         </TabsContent>
 
-        <TabsContent value="todos" className="flex flex-col gap-8">
+        <TabsContent value="todos" className="flex flex-col gap-4 md:gap-8">
           <TodoList initialTasks={tasks} />
         </TabsContent>
       </Tabs>

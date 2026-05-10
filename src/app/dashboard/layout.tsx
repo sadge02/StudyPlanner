@@ -23,8 +23,6 @@ export default async function DashboardLayout({
     : null;
 
   return (
-    <AppShell activeStudySession={activeStudySession} user={session.user}>
-      {children}
-    </AppShell>
+    <AppShell activeStudySession={activeStudySession}>{children}</AppShell>
   );
 }

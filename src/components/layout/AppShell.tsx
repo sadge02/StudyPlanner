@@ -14,11 +14,9 @@ export type ShellUser = {
 export function AppShell({
   activeStudySession,
   children,
-  user,
 }: {
   activeStudySession: ActiveTimerSnapshot | null;
   children: React.ReactNode;
-  user: ShellUser;
 }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -26,7 +24,6 @@ export function AppShell({
   return (
     <div className="flex h-[100dvh] overflow-hidden bg-background text-foreground">
       <Sidebar
-        user={user}
         collapsed={sidebarCollapsed}
         onCollapsedChange={setSidebarCollapsed}
         mobileOpen={mobileSidebarOpen}
