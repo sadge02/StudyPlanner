@@ -152,7 +152,15 @@ export async function updateNote(
 
     const note = await prisma.note.update({
       where: { id },
-      data: validatedData,
+      data: {
+        ...validatedData,
+        ...("subjectId" in input && {
+          subjectId: validatedData.subjectId ?? null,
+        }),
+        ...("projectId" in input && {
+          projectId: validatedData.projectId ?? null,
+        }),
+      },
     });
 
     revalidatePath("/dashboard/notes");
@@ -221,6 +229,7 @@ export async function getUserNotes(): Promise<ApiResponse<Note[]>> {
         OR: [{ userId: session.user.id }, { projectId: { in: userProjects } }],
       },
       orderBy: { createdAt: "desc" },
+      include: { subject: true, project: true },
     });
 
     return { success: true, data: notes as unknown as Note[] };

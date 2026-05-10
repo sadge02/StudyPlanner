@@ -14,13 +14,27 @@ export const ourFileRouter = {
   pdfUploader: f({ pdf: { maxFileSize: "16MB", maxFileCount: 1 } })
     .middleware(authMiddleware)
     .onUploadComplete(async ({ metadata, file }) => {
-      return { uploadedBy: metadata.userId, url: file.ufsUrl };
+      return { uploadedBy: metadata.userId, url: file.ufsUrl, name: file.name };
     }),
 
   imageUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
     .middleware(authMiddleware)
     .onUploadComplete(async ({ metadata, file }) => {
-      return { uploadedBy: metadata.userId, url: file.ufsUrl };
+      return { uploadedBy: metadata.userId, url: file.ufsUrl, name: file.name };
+    }),
+
+  noteUploader: f({
+    blob: { maxFileSize: "32MB", maxFileCount: 1 },
+  })
+    .middleware(authMiddleware)
+    .onUploadComplete(async ({ metadata, file }) => {
+      return {
+        uploadedBy: metadata.userId,
+        url: file.ufsUrl,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+      };
     }),
 } satisfies FileRouter;
 
