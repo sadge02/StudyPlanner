@@ -11,15 +11,16 @@ import type { TaskStatus, TaskWithSubject } from "@/types";
 import { useConfirm } from "@/components/ui/ConfirmDialog";
 
 const PRIORITY_STYLES = {
-  HIGH: { label: "High", color: "text-red-600", icon: "!" },
-  MEDIUM: { label: "Medium", color: "text-slate-600", icon: "—" },
-  LOW: { label: "Low", color: "text-slate-500", icon: "↓" },
+  HIGH: { label: "High", color: "text-red-600 dark:text-red-400", icon: "!" },
+  MEDIUM: { label: "Medium", color: "text-muted-foreground", icon: "—" },
+  LOW: { label: "Low", color: "text-muted-foreground", icon: "↓" },
 } as const;
 
 const STATUS_STYLES: Record<TaskStatus, string> = {
-  TODO: "bg-blue-50 text-blue-700",
-  IN_PROGRESS: "bg-indigo-50 text-indigo-700",
-  DONE: "bg-green-50 text-green-700",
+  TODO: "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+  IN_PROGRESS:
+    "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300",
+  DONE: "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300",
 };
 
 function formatDeadline(d: Date | null) {
@@ -57,7 +58,8 @@ export function TaskTable({
   const availableSubjects = useMemo(() => {
     const map = new Map<string, { id: string; name: string }>();
     for (const t of tasks) {
-      if (t.subject) map.set(t.subject.id, { id: t.subject.id, name: t.subject.name });
+      if (t.subject)
+        map.set(t.subject.id, { id: t.subject.id, name: t.subject.name });
     }
     return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
   }, [tasks]);
@@ -113,7 +115,8 @@ export function TaskTable({
     actionLabel: string,
   ) => {
     const failures = results.filter(
-      (r) => r.status === "rejected" || (r.status === "fulfilled" && !r.value.success),
+      (r) =>
+        r.status === "rejected" || (r.status === "fulfilled" && !r.value.success),
     );
     if (failures.length === 0) {
       setActionError(null);
@@ -163,7 +166,7 @@ export function TaskTable({
     return (
       <>
         {dialog}
-        <div className="rounded-lg border border-dashed border-slate-300 p-12 text-center text-slate-500">
+        <div className="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
           No tasks yet.
         </div>
       </>
@@ -174,21 +177,21 @@ export function TaskTable({
     <div className="space-y-3">
       {dialog}
       {actionError && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
           {actionError}
         </div>
       )}
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-wrap items-end gap-3 border-b border-slate-100 px-6 py-3">
+      <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
+        <div className="flex flex-wrap items-end gap-3 border-b px-6 py-3">
           {showSubject && (
             <div className="flex flex-col">
-              <label className="mb-1 text-xs font-medium uppercase tracking-wider text-slate-500">
+              <label className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Subject
               </label>
               <select
                 value={subjectFilter}
                 onChange={(e) => changeSubjectFilter(e.target.value)}
-                className="rounded-md border border-slate-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="rounded-md border bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="">All</option>
                 {availableSubjects.map((s) => (
@@ -200,24 +203,24 @@ export function TaskTable({
             </div>
           )}
           <div className="flex flex-col">
-            <label className="mb-1 text-xs font-medium uppercase tracking-wider text-slate-500">
+            <label className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Due before
             </label>
             <input
               type="date"
               value={deadlineFilter}
               onChange={(e) => changeDeadlineFilter(e.target.value)}
-              className="rounded-md border border-slate-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="rounded-md border bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
           <div className="flex flex-col">
-            <label className="mb-1 text-xs font-medium uppercase tracking-wider text-slate-500">
+            <label className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Status
             </label>
             <select
               value={statusFilter}
               onChange={(e) => changeStatusFilter(e.target.value)}
-              className="rounded-md border border-slate-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="rounded-md border bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="">All</option>
               {TASK_STATUS_OPTIONS.map((s) => (
@@ -231,7 +234,7 @@ export function TaskTable({
             <button
               type="button"
               onClick={resetFilters}
-              className="ml-auto flex items-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
+              className="ml-auto flex items-center gap-1 rounded-md border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
             >
               <X size={14} />
               Clear filters
@@ -239,7 +242,7 @@ export function TaskTable({
           )}
         </div>
         <table className="w-full min-w-[640px] text-sm">
-          <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <thead className="bg-muted/50 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <tr>
               <th className="px-6 py-3">Task name</th>
               {showSubject && <th className="px-6 py-3">Subject</th>}
@@ -248,12 +251,12 @@ export function TaskTable({
               <th className="px-6 py-3 text-right">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y">
             {filtered.length === 0 && (
               <tr>
                 <td
                   colSpan={showSubject ? 5 : 4}
-                  className="px-6 py-12 text-center text-sm text-slate-500"
+                  className="px-6 py-12 text-center text-sm text-muted-foreground"
                 >
                   No tasks match the current filters.
                 </td>
@@ -262,18 +265,18 @@ export function TaskTable({
             {filtered.map((t) => {
               const prio = PRIORITY_STYLES[t.priority];
               return (
-                <tr key={t.id} className="hover:bg-slate-50">
+                <tr key={t.id} className="hover:bg-muted/50">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <input
                         type="checkbox"
                         checked={selected.has(t.id)}
                         onChange={() => toggle(t.id)}
-                        className="h-4 w-4 rounded border-slate-300"
+                        className="h-4 w-4 rounded border-input"
                       />
                       <Link
                         href={`/dashboard/tasks/${t.id}`}
-                        className="font-medium text-slate-900 hover:text-brand"
+                        className="font-medium text-foreground hover:text-brand"
                       >
                         {t.title}
                       </Link>
@@ -292,11 +295,11 @@ export function TaskTable({
                           {t.subject.name}
                         </span>
                       ) : (
-                        <span className="text-slate-400">—</span>
+                        <span className="text-muted-foreground">—</span>
                       )}
                     </td>
                   )}
-                  <td className="px-6 py-4 text-slate-600">
+                  <td className="px-6 py-4 text-muted-foreground">
                     {formatDeadline(t.deadline)}
                   </td>
                   <td className={`px-6 py-4 ${prio.color}`}>
@@ -305,7 +308,8 @@ export function TaskTable({
                   <td className="px-6 py-4 text-right">
                     <span
                       className={`inline-block rounded px-2 py-1 text-xs font-semibold uppercase ${
-                        STATUS_STYLES[t.status as TaskStatus] ?? "bg-slate-100 text-slate-700"
+                        STATUS_STYLES[t.status as TaskStatus] ??
+                        "bg-muted text-muted-foreground"
                       }`}
                     >
                       {t.status.replace("_", " ")}
@@ -316,7 +320,7 @@ export function TaskTable({
             })}
           </tbody>
         </table>
-        <div className="flex items-center justify-between border-t border-slate-100 px-6 py-3 text-sm text-slate-500">
+        <div className="flex items-center justify-between border-t px-6 py-3 text-sm text-muted-foreground">
           <span>
             Showing {filtered.length} of {tasks.length} tasks
           </span>
@@ -325,14 +329,14 @@ export function TaskTable({
 
       {selected.size > 0 && (
         <div className="flex flex-wrap items-center justify-end gap-2">
-          <span className="mr-2 text-sm text-slate-500">
+          <span className="mr-2 text-sm text-muted-foreground">
             {selected.size} selected
           </span>
           <button
             type="button"
             onClick={handleMarkDone}
             disabled={isPending}
-            className="flex items-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-md transition-colors hover:bg-green-700 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-md transition-colors hover:bg-green-700 disabled:opacity-50 dark:bg-green-700 dark:hover:bg-green-600"
           >
             <CheckCircle2 size={18} />
             Mark as Done
@@ -341,7 +345,7 @@ export function TaskTable({
             type="button"
             onClick={handleDelete}
             disabled={isPending}
-            className="flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-md transition-colors hover:bg-red-700 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-md bg-destructive px-4 py-2 text-sm font-medium text-white shadow-md transition-colors hover:bg-destructive/90 disabled:opacity-50"
           >
             <Trash2 size={18} />
             Delete

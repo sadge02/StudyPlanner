@@ -70,18 +70,18 @@ export default async function SubjectDetailPage({
           />
         </div>
         {breakdown.length > 0 && (
-          <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-100 px-6 py-3 text-sm font-semibold text-slate-700">
+          <div className="mt-4 overflow-hidden rounded-xl border bg-card shadow-sm">
+            <div className="border-b px-6 py-3 text-sm font-semibold text-foreground">
               Study time by task
             </div>
-            <ul className="divide-y divide-slate-100 text-sm">
+            <ul className="divide-y text-sm">
               {breakdown.map((b) => (
                 <li
                   key={b.taskId}
                   className="flex items-center justify-between px-6 py-3"
                 >
-                  <span className="text-slate-700">{b.title}</span>
-                  <span className="font-medium text-slate-900">
+                  <span className="text-foreground">{b.title}</span>
+                  <span className="font-medium text-foreground">
                     {b.hours.toFixed(1)} h
                   </span>
                 </li>
@@ -110,9 +110,9 @@ export default async function SubjectDetailPage({
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="text-sm font-medium text-slate-500">{label}</div>
-      <div className="mt-1 text-2xl font-bold text-slate-900">{value}</div>
+    <div className="rounded-xl border bg-card p-5 shadow-sm">
+      <div className="text-sm font-medium text-muted-foreground">{label}</div>
+      <div className="mt-1 text-2xl font-bold text-foreground">{value}</div>
     </div>
   );
 }

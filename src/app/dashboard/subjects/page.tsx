@@ -27,7 +27,7 @@ export default async function SubjectsPage() {
       </div>
 
       {subjects.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-slate-300 p-12 text-center text-slate-500">
+        <div className="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
           No subjects yet.
         </div>
       ) : (

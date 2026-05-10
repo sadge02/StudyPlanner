@@ -8,7 +8,7 @@ export function SubjectCard({ subject }: { subject: SubjectListItem }) {
   return (
     <Link
       href={`/dashboard/subjects/${subject.id}`}
-      className="group block rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow"
+      className="group block rounded-xl border bg-card p-5 shadow-sm hover:shadow-md transition-shadow"
     >
       <div className="flex items-start justify-between mb-4">
         <div
@@ -18,17 +18,17 @@ export function SubjectCard({ subject }: { subject: SubjectListItem }) {
           <BookOpen size={20} />
         </div>
         {subject.credits != null && (
-          <span className="rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
+          <span className="rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
             {subject.credits} credits
           </span>
         )}
       </div>
 
-      <h3 className="text-lg font-bold text-slate-900 group-hover:text-brand transition-colors">
+      <h3 className="text-lg font-bold text-foreground group-hover:text-brand transition-colors">
         {subject.name}
       </h3>
 
-      <div className="mt-4 flex items-center gap-3 text-sm text-slate-500">
+      <div className="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
         <span className="inline-flex items-center gap-1.5">
           <span
             className="h-2 w-2 rounded-full"
