@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { rrulestr } from "rrule";
 import { createEvent } from "@/lib/actions/event.actions";
 import { createEventSchema } from "@/schemas";
 import type { Subject } from "@/types";
@@ -75,6 +76,18 @@ export function EventForm({
     return buildRecurrenceRule(recurrencePreset, startTime);
   }, [customRule, isRecurring, recurrencePreset, startTime]);
 
+  const rruleError = useMemo(() => {
+    if (!isRecurring || recurrencePreset !== "custom") return null;
+    const trimmed = customRule.trim();
+    if (!trimmed) return null;
+    try {
+      rrulestr(trimmed);
+      return null;
+    } catch {
+      return "Invalid RRULE syntax (e.g. FREQ=WEEKLY;BYDAY=MO,WE)";
+    }
+  }, [customRule, isRecurring, recurrencePreset]);
+
   const handleSubmit = () => {
     setErrorMessage(null);
 
@@ -85,7 +98,7 @@ export function EventForm({
       endTime,
       isRecurring,
       recurrenceRule: resolvedRule,
-      subjectId: subjectId === "none" ? null : subjectId,
+      subjectId: subjectId === "none" ? undefined : subjectId,
     };
 
     const validation = createEventSchema.safeParse(payload);
@@ -231,7 +244,11 @@ export function EventForm({
                   value={customRule}
                   onChange={(event) => setCustomRule(event.target.value)}
                   placeholder="FREQ=WEEKLY;BYDAY=MO,WE"
+                  aria-invalid={rruleError ? true : undefined}
                 />
+                {rruleError ? (
+                  <p className="text-sm text-destructive">{rruleError}</p>
+                ) : null}
               </div>
             ) : (
               <div className="rounded-lg border border-dashed border-border bg-background/70 px-3 py-2 text-sm text-muted-foreground">
@@ -255,7 +272,11 @@ export function EventForm({
         >
           Cancel
         </Button>
-        <Button type="button" onClick={handleSubmit} disabled={isPending}>
+        <Button
+          type="button"
+          onClick={handleSubmit}
+          disabled={isPending || rruleError !== null}
+        >
           {isPending ? "Creating..." : "Create event"}
         </Button>
       </div>
