@@ -29,7 +29,6 @@ const STATUS_COLORS: Record<TaskStatus, string> = {
   DONE: "#22c55e",
   IN_PROGRESS: "#f59e0b",
   TODO: "#94a3b8",
-  BLOCKED: "#60a5fa",
 };
 
 function statusColor(status: TaskStatus) {

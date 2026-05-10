@@ -373,7 +373,7 @@ export interface UpdateProjectMemberRoleInput {
 // UTILITY TYPES
 // ==========================================
 
-export type TaskStatus = "TODO" | "IN_PROGRESS" | "DONE" | "BLOCKED";
+export type TaskStatus = "TODO" | "IN_PROGRESS" | "DONE";
 
 export interface TaskWithDuration extends Task {
   duration?: number;

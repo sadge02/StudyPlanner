@@ -98,8 +98,9 @@ const TodoList = ({ initialTasks }: Props) => {
     const response = await createTask({
       title: title.trim(),
       priority,
+      status: "TODO",
       description: description || undefined,
-      deadline: deadline ? new Date(deadline).toISOString() : undefined,
+      deadline: deadline ? new Date(deadline) : undefined,
     });
 
     if (response.success) {

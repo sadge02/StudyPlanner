@@ -55,6 +55,7 @@ const GeneralTodosWidget = ({ tasks: initialTasks }: Props) => {
     const response = await createTask({
       title: optimistic.title,
       priority: "MEDIUM",
+      status: "TODO",
     });
     if (!response.success)
       toast.error(response.message ?? "Failed to create task");
@@ -135,7 +136,7 @@ const GeneralTodosWidget = ({ tasks: initialTasks }: Props) => {
           type="button"
           variant="outline"
           className="text-xs w-full text-primary hover:text-primary shadow-sm"
-          onClick={() => router.push("/dashboard/todos")}
+          onClick={() => router.push("/dashboard/subjects")}
         >
           View all ({tasks.length})
         </Button>
