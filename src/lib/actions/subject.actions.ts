@@ -9,6 +9,7 @@ import {
   type UpdateSubjectInput,
 } from "@/schemas";
 import { revalidatePath } from "next/cache";
+import { ApiResponse, Subject, SubjectWithRelations } from "@/types";
 
 export async function getSubjects(): Promise<ApiResponse<Subject[]>> {
   try {
@@ -28,11 +29,49 @@ export async function getSubjects(): Promise<ApiResponse<Subject[]>> {
   }
 }
 
-import { ApiResponse, Subject, SubjectWithRelations } from "@/types";
-
 export type SubjectListItem = Subject & {
   _count: { tasks: number; events: number };
 };
+
+export type SubjectListStatsItem = Subject & {
+  _count: { tasks: number };
+  completedTasks: number;
+};
+
+export async function getUserSubjectsStats(): Promise<
+  ApiResponse<SubjectListStatsItem[]>
+> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const subjects = await prisma.subject.findMany({
+      where: { userId: session.user.id },
+      orderBy: { createdAt: "desc" },
+      include: {
+        _count: {
+          select: { tasks: true },
+        },
+        tasks: {
+          where: { status: "DONE" },
+          select: { id: true },
+        },
+      },
+    });
+
+    return {
+      success: true,
+      data: subjects.map((s) => ({
+        ...s,
+        completedTasks: s.tasks.length,
+      })) as SubjectListStatsItem[],
+    };
+  } catch {
+    return { success: false, message: "Failed to load subjects" };
+  }
+}
 
 export async function createSubject(
   data: CreateSubjectInput,
@@ -125,8 +164,9 @@ export async function deleteSubject(id: string): Promise<ApiResponse<null>> {
   }
 }
 
-
-export async function getUserSubjects(): Promise<ApiResponse<SubjectListItem[]>> {
+export async function getUserSubjects(): Promise<
+  ApiResponse<SubjectListItem[]>
+> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -149,7 +189,9 @@ export async function getUserSubjects(): Promise<ApiResponse<SubjectListItem[]>>
   }
 }
 
-export async function getSubjectById(id: string): Promise<ApiResponse<SubjectWithRelations>> {
+export async function getSubjectById(
+  id: string,
+): Promise<ApiResponse<SubjectWithRelations>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -178,4 +220,3 @@ export async function getSubjectById(id: string): Promise<ApiResponse<SubjectWit
     return { success: false, message: "Failed to load subject" };
   }
 }
-

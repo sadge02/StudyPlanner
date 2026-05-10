@@ -65,11 +65,7 @@ function dateToDayIndex(date: Date, chartStart: Date) {
   return differenceInCalendarDays(startOfDay(date), chartStart);
 }
 
-export function TimelineView({
-  tasks,
-}: {
-  tasks: ProjectTimelineTask[];
-}) {
+export function TimelineView({ tasks }: { tasks: ProjectTimelineTask[] }) {
   const [spanDays, setSpanDays] = useState("15");
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [deadlineOverrides, setDeadlineOverrides] = useState<
@@ -114,10 +110,10 @@ export function TimelineView({
       tasks: group.tasks.sort(
         (a, b) =>
           (dragState
-            ? frozenEndTimes.get(a.id) ?? a.endTime.getTime()
+            ? (frozenEndTimes.get(a.id) ?? a.endTime.getTime())
             : a.endTime.getTime()) -
           (dragState
-            ? frozenEndTimes.get(b.id) ?? b.endTime.getTime()
+            ? (frozenEndTimes.get(b.id) ?? b.endTime.getTime())
             : b.endTime.getTime()),
       ),
     }));
@@ -136,20 +132,21 @@ export function TimelineView({
   const chartStart = startOfDay(
     sortedTasks.reduce(
       (earliest, task) =>
-        task.startTime.getTime() < earliest.getTime() ? task.startTime : earliest,
+        task.startTime.getTime() < earliest.getTime()
+          ? task.startTime
+          : earliest,
       sortedTasks[0].startTime,
     ),
   );
   const selectedSpanDays = Number(spanDays);
-  const chartEnd = endOfDay(
-    addDays(chartStart, selectedSpanDays - 1),
-  );
+  const chartEnd = endOfDay(addDays(chartStart, selectedSpanDays - 1));
   const totalDays = selectedSpanDays;
   const svgWidth = LEFT_COLUMN_WIDTH + totalDays * DAY_WIDTH;
   const svgHeight =
     56 +
     groupedTasks.reduce(
-      (height, group) => height + GROUP_HEADER_HEIGHT + group.tasks.length * ROW_HEIGHT,
+      (height, group) =>
+        height + GROUP_HEADER_HEIGHT + group.tasks.length * ROW_HEIGHT,
       0,
     );
 
@@ -173,21 +170,19 @@ export function TimelineView({
     });
   };
 
-  const handlePointerMove = (
-    event: React.PointerEvent<SVGSVGElement>,
-  ) => {
+  const handlePointerMove = (event: React.PointerEvent<SVGSVGElement>) => {
     if (!dragState) return;
 
-    const currentPointerSvgX = clientXToSvgX(event.currentTarget, event.clientX);
+    const currentPointerSvgX = clientXToSvgX(
+      event.currentTarget,
+      event.clientX,
+    );
     const deltaDays = Math.round(
       (currentPointerSvgX - dragState.startPointerSvgX) / DAY_WIDTH,
     );
     const dayIndex = Math.max(
       0,
-      Math.min(
-        totalDays - 1,
-        dragState.originalDayIndex + deltaDays,
-      ),
+      Math.min(totalDays - 1, dragState.originalDayIndex + deltaDays),
     );
     const nextDay = addDays(chartStart, dayIndex);
     const nextEndTime = withPreservedTime(nextDay, dragState.originalEndTime);
@@ -203,10 +198,7 @@ export function TimelineView({
 
     const { originalEndTime, taskId } = dragState;
     const nextDeadline = deadlineOverrides[dragState.taskId];
-    if (
-      !nextDeadline ||
-      nextDeadline.getTime() === originalEndTime.getTime()
-    ) {
+    if (!nextDeadline || nextDeadline.getTime() === originalEndTime.getTime()) {
       setDragState(null);
       return;
     }
@@ -214,7 +206,9 @@ export function TimelineView({
     setDragState(null);
 
     startTransition(async () => {
-      const response = await updateTask(taskId, { deadline: nextDeadline.toISOString() });
+      const response = await updateTask(taskId, {
+        deadline: nextDeadline.toISOString(),
+      });
       if (!response.success) {
         setErrorMessage(response.message ?? "Failed to reschedule task");
         setDeadlineOverrides((current) => ({
@@ -268,7 +262,13 @@ export function TimelineView({
           onPointerUp={finalizeDrag}
           onPointerLeave={finalizeDrag}
         >
-          <rect x="0" y="0" width={svgWidth} height={svgHeight} fill="transparent" />
+          <rect
+            x="0"
+            y="0"
+            width={svgWidth}
+            height={svgHeight}
+            fill="transparent"
+          />
 
           {Array.from({ length: totalDays }, (_, index) => {
             const day = addDays(chartStart, index);
@@ -280,7 +280,11 @@ export function TimelineView({
                   y={0}
                   width={DAY_WIDTH}
                   height={svgHeight}
-                  fill={index % 2 === 0 ? "rgba(148, 163, 184, 0.06)" : "transparent"}
+                  fill={
+                    index % 2 === 0
+                      ? "rgba(148, 163, 184, 0.06)"
+                      : "transparent"
+                  }
                 />
                 <line
                   x1={x}
@@ -368,7 +372,12 @@ export function TimelineView({
                           stroke="rgba(148, 163, 184, 0.12)"
                         />
 
-                        <text x={16} y={rowY + 18} fontSize="13" fill="currentColor">
+                        <text
+                          x={16}
+                          y={rowY + 18}
+                          fontSize="13"
+                          fill="currentColor"
+                        >
                           {task.title}
                         </text>
                         <text
@@ -378,7 +387,8 @@ export function TimelineView({
                           fill="currentColor"
                           opacity="0.62"
                         >
-                          {(task.subject?.name ?? task.status.replaceAll("_", " ")) +
+                          {(task.subject?.name ??
+                            task.status.replaceAll("_", " ")) +
                             ` • ${taskDurationDays}d`}
                           {task.isProxyRange ? " • proxy deadline" : ""}
                         </text>

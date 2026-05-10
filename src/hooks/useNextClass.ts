@@ -1,14 +1,43 @@
-/**
- * useNextClass Hook
- * M3 - Finds next upcoming event using JS Date
- *
- * TODO: Fetch next upcoming event from server action
- * TODO: Auto-update as time passes
- * TODO: Return event details, time until start, isToday flag
- * TODO: Handle error states
- */
+"use client";
+
+import { useEffect, useState } from "react";
+import { EventWithSubject } from "@/types";
+import { getNextEvent } from "@/lib/actions/event.actions";
+
+function formatTimeRemaining(ms: number): string {
+  if (ms <= 0) return "Starting now";
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
 
 export function useNextClass() {
-  // TODO: Implement hook logic
-  // Return { nextClass, isLoading, error }
+  const [event, setEvent] = useState<EventWithSubject | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState("");
+
+  useEffect(() => {
+    const fetchEvent = async () => {
+      const response = await getNextEvent();
+      setEvent(response.data ?? null);
+    };
+    fetchEvent();
+  }, []);
+
+  useEffect(() => {
+    if (!event) return;
+
+    const tick = () => {
+      const now = new Date();
+      const diff = new Date(event.startTime).getTime() - now.getTime();
+      setTimeRemaining(formatTimeRemaining(diff));
+    };
+
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [event]);
+
+  return { event, timeRemaining };
 }

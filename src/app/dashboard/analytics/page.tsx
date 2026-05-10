@@ -1,10 +1,18 @@
 import { AnalyticsPeriodSelector } from "@/components/analytics/AnalyticsPeriodSelector";
 import { ProductivityChart } from "@/components/analytics/ProductivityChart";
 import { StudyTimeTrendChart } from "@/components/analytics/StudyTimeTrendChart";
+import { StudyTimer } from "@/components/analytics/StudyTimer";
 import { TaskCompletionChart } from "@/components/analytics/TaskCompletionChart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getStudyStats } from "@/lib/actions/session.actions";
-import { getTaskCompletionStats } from "@/lib/actions/task.actions";
+import {
+  getActiveStudySession,
+  getStudyStats,
+} from "@/lib/actions/session.actions";
+import { getSubjects } from "@/lib/actions/subject.actions";
+import {
+  getStudyTimerTasks,
+  getTaskCompletionStats,
+} from "@/lib/actions/task.actions";
 import type { StudyStats, StudyStatsPeriod } from "@/types";
 
 function formatDuration(seconds: number) {
@@ -55,12 +63,24 @@ export default async function AnalyticsPage({
 }) {
   const params = await searchParams;
   const period = parsePeriod(params?.period);
-  const [statsResponse, taskStatsResponse] = await Promise.all([
+  const [
+    activeSessionResponse,
+    statsResponse,
+    subjectsResponse,
+    taskOptionsResponse,
+    taskStatsResponse,
+  ] = await Promise.all([
+    getActiveStudySession(),
     getStudyStats(period),
+    getSubjects(),
+    getStudyTimerTasks(),
     getTaskCompletionStats(),
   ]);
   const stats = statsResponse.data ?? emptyStats;
   const taskStats = taskStatsResponse.data ?? emptyTaskStats;
+  const activeSession = activeSessionResponse.data ?? null;
+  const subjects = subjectsResponse.data ?? [];
+  const taskOptions = taskOptionsResponse.data ?? [];
 
   return (
     <div className="space-y-6">
@@ -86,6 +106,18 @@ export default async function AnalyticsPage({
       {!taskStatsResponse.success && taskStatsResponse.message ? (
         <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
           {taskStatsResponse.message}
+        </div>
+      ) : null}
+
+      {!subjectsResponse.success && subjectsResponse.message ? (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          {subjectsResponse.message}
+        </div>
+      ) : null}
+
+      {!taskOptionsResponse.success && taskOptionsResponse.message ? (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          {taskOptionsResponse.message}
         </div>
       ) : null}
 
@@ -143,9 +175,17 @@ export default async function AnalyticsPage({
         </Card>
       </div>
 
+      <div className="grid gap-6 xl:grid-cols-2">
+        <TaskCompletionChart stats={taskStats} />
+        <StudyTimer
+          activeSession={activeSession}
+          subjects={subjects}
+          tasks={taskOptions}
+        />
+      </div>
+
       <StudyTimeTrendChart data={stats.trends} period={stats.period} />
       <ProductivityChart data={stats.timeBySubject} />
-      <TaskCompletionChart stats={taskStats} />
     </div>
   );
 }

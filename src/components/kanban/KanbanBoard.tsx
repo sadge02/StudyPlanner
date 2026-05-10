@@ -14,12 +14,17 @@ import KanbanCard from "./KanbanCard";
 import { useKanbanDnd } from "@/hooks/useKanbanDnd";
 
 type Props = {
-  initialColumns: Column[];
   initialTasks: Task[];
   projectId: string;
 };
 
-const KanbanBoard = ({ initialColumns, initialTasks, projectId }: Props) => {
+export const initialColumns: Column[] = [
+  { id: "todo", title: "TODO" },
+  { id: "in_progress", title: "In Progress" },
+  { id: "done", title: "Done" },
+];
+
+const KanbanBoard = ({ initialTasks, projectId }: Props) => {
   const {
     activeTask,
     handleDragStart,
@@ -50,7 +55,7 @@ const KanbanBoard = ({ initialColumns, initialTasks, projectId }: Props) => {
         },
       }}
     >
-      <div className="flex flex-row gap-4 p-4 overflow-x-auto items-start">
+      <div className="flex flex-row gap-4 overflow-x-auto items-start">
         {initialColumns.map((column, index) => (
           <KanbanColumn
             key={column.id}

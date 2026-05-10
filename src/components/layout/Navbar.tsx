@@ -7,6 +7,10 @@ import { Fragment } from "react";
 import { usePathname } from "next/navigation";
 
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import {
+  ActiveTimerIndicator,
+  type ActiveTimerSnapshot,
+} from "@/components/analytics/ActiveTimerIndicator";
 import { Button } from "@/components/ui/button";
 
 const SEGMENT_LABELS: Record<string, string> = {
@@ -56,7 +60,13 @@ function buildBreadcrumbs(pathname: string) {
   return crumbs;
 }
 
-export function Navbar({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
+export function Navbar({
+  activeStudySession,
+  onOpenMobileNav,
+}: {
+  activeStudySession: ActiveTimerSnapshot | null;
+  onOpenMobileNav: () => void;
+}) {
   const pathname = usePathname() ?? "/dashboard";
   const crumbs = buildBreadcrumbs(pathname);
 
@@ -127,6 +137,7 @@ export function Navbar({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
       </div>
 
       <div className="col-start-2 flex shrink-0 items-center justify-self-end gap-1 sm:col-start-3 sm:space-x-4">
+        <ActiveTimerIndicator initialSession={activeStudySession} />
         <ThemeToggle />
 
         <button

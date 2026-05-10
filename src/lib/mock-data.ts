@@ -1,4 +1,4 @@
-import { Task } from "@/types";
+import { EventWithSubject, Task } from "@/types";
 
 export const mockTasks: Task[] = [
   {
@@ -50,3 +50,25 @@ export const mockTasks: Task[] = [
     parentId: "1",
   },
 ];
+
+// Mock event — replace with: const response = await getNextEvent()
+const mockNextEvent: EventWithSubject = {
+  id: "event-1",
+  title: "Data Structures",
+  description: "Lecture with Prof. Aris • Room 302",
+  startTime: new Date(new Date().setHours(new Date().getHours() + 1, 30, 0, 0)),
+  endTime: new Date(new Date().setHours(new Date().getHours() + 3, 0, 0, 0)),
+  isRecurring: true,
+  recurrenceRule: null,
+  userId: "mock-user-1",
+  subjectId: "subject-1",
+  subject: {
+    id: "subject-1",
+    name: "Data Structures",
+    credits: 4,
+    color: "#3b82f6",
+    userId: "mock-user-1",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+};

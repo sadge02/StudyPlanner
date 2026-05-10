@@ -45,7 +45,7 @@ const KanbanCard = ({ task, onDelete }: KanbanCardProps) => {
   };
 
   const icons = (
-    <div className="flex gap-2 ml-auto">
+    <div className="flex gap-3 ml-auto">
       <Pen
         size={15}
         className="cursor-pointer text-muted-foreground hover:text-foreground"
@@ -72,7 +72,7 @@ const KanbanCard = ({ task, onDelete }: KanbanCardProps) => {
         style={style}
         {...attributes}
         {...listeners}
-        className="w-xs gap-2 cursor-grab active:cursor-grabbing"
+        className="w-xs gap-2 cursor-grab active:cursor-grabbing shadow-sm"
       >
         <CardHeader>
           {task.subjectId ? (

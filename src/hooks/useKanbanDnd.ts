@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Task, KanbanColumn as Column, TaskStatus } from "@/types";
 import { DragStartEvent, DragOverEvent, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
@@ -8,6 +8,17 @@ import { toast } from "sonner";
 export function useKanbanDnd(initialTasks: Task[], columns: Column[]) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+
+  // Sync internal task state when the project changes.
+  // useKanbanDnd owns task state for optimistic DnD updates, but when the
+  // parent switches projects it passes a new initialTasks array — we reset
+  // here to avoid showing stale tasks from the previous project.
+  // This won't cause an infinite loop because initialTasks only changes
+  // when the user selects a different project in TasksPageOverview.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTasks(initialTasks);
+  }, [initialTasks]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const task = tasks.find((t) => t.id === event.active.id);

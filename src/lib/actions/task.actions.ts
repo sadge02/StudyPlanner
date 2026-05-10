@@ -16,6 +16,7 @@ import {
   TaskCompletionItem,
   TaskCompletionStats,
   TaskStatus,
+  StudyTimerTaskOption,
   TaskWithSubject,
 } from "@/types";
 
@@ -50,6 +51,36 @@ function revalidateTaskPaths() {
   revalidatePath("/dashboard/subjects");
 }
 import { checkProjectAccess } from "../utils/access";
+
+export async function getTodaysTasks(): Promise<ApiResponse<Task[]>> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const tasks = await prisma.task.findMany({
+      where: {
+        userId: session.user.id,
+        deadline: {
+          gte: today,
+          lt: tomorrow,
+        },
+      },
+      orderBy: { deadline: "asc" },
+    });
+
+    return { success: true, data: tasks as unknown as Task[] };
+  } catch {
+    return { success: false, message: "Failed to fetch today's tasks" };
+  }
+}
 
 export async function getTaskCompletionStats(): Promise<
   ApiResponse<TaskCompletionStats>
@@ -105,6 +136,37 @@ export async function getTaskCompletionStats(): Promise<
     };
   } catch {
     return { success: false, message: "Failed to fetch task completion stats" };
+  }
+}
+
+export async function getStudyTimerTasks(): Promise<
+  ApiResponse<StudyTimerTaskOption[]>
+> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    const tasks = await prisma.task.findMany({
+      where: { userId: session.user.id },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+      },
+      orderBy: [{ status: "asc" }, { title: "asc" }],
+    });
+
+    return {
+      success: true,
+      data: tasks.map((task) => ({
+        ...task,
+        status: task.status as TaskStatus,
+      })),
+    };
+  } catch {
+    return { success: false, message: "Failed to fetch timer tasks" };
   }
 }
 

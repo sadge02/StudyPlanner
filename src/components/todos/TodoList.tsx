@@ -111,11 +111,11 @@ const TodoList = ({ initialTasks }: Props) => {
   };
 
   return (
-    <div className="flex flex-col gap-6 p-6 max-w-3xl">
+    <div className="flex flex-col gap-6 p-6 pt-2 max-w-3xl">
       {/* Quick add card */}
-      <div className="rounded-lg border bg-card p-4 flex flex-col gap-3">
+      <div className="rounded-lg border bg-card p-4 flex flex-col gap-3 shadow">
         <div className="flex items-center gap-2">
-          <CheckSquare size={18} className="text-muted-foreground shrink-0" />
+          <CheckSquare size={18} className="shrink-0 text-blue-600" />
           <Input
             className="border-none shadow-none p-0 text-base focus-visible:ring-0 placeholder:text-muted-foreground"
             placeholder="Task Title"
@@ -137,7 +137,7 @@ const TodoList = ({ initialTasks }: Props) => {
               value={priority}
               onValueChange={(v) => setPriority(v as "LOW" | "MEDIUM" | "HIGH")}
             >
-              <SelectTrigger className="w-32 h-8">
+              <SelectTrigger className="w-32 h-8 shadow-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -151,12 +151,12 @@ const TodoList = ({ initialTasks }: Props) => {
             <span className="text-sm text-muted-foreground">Deadline:</span>
             <Input
               type="date"
-              className="w-40 h-8"
+              className="w-40 h-8 shadow-sm"
               value={deadline}
               onChange={(e) => setDeadline(e.target.value)}
             />
           </div>
-          <Button className="ml-auto" onClick={handleAdd}>
+          <Button className="ml-auto shadow-sm" onClick={handleAdd}>
             Add Task
           </Button>
         </div>
@@ -167,7 +167,9 @@ const TodoList = ({ initialTasks }: Props) => {
         <div className="flex items-center gap-2">
           <h2 className="font-semibold text-lg">Current</h2>
           <span className="text-sm text-muted-foreground">
-            {current.length}
+            <Badge variant="secondary" className="text-xs shadow-sm">
+              {current.length}
+            </Badge>
           </span>
         </div>
         {current.length === 0 && (

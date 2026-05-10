@@ -1,5 +1,23 @@
 import { z } from "zod";
+import { rrulestr } from "rrule";
 import { descriptionField, titleField, cuidOrEmpty } from "./shared";
+
+const rruleString = z
+  .string()
+  .optional()
+  .nullable()
+  .refine(
+    (value) => {
+      if (!value) return true;
+      try {
+        rrulestr(value);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    { message: "Invalid RRULE syntax (e.g. FREQ=WEEKLY;BYDAY=MO,WE)" },
+  );
 
 const eventBase = z.object({
   title: titleField,
@@ -7,7 +25,7 @@ const eventBase = z.object({
   startTime: z.coerce.date(),
   endTime: z.coerce.date(),
   isRecurring: z.boolean().default(false),
-  recurrenceRule: z.string().optional().nullable(),
+  recurrenceRule: rruleString,
   subjectId: cuidOrEmpty,
 });
 
