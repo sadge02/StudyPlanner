@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { CopyPlus, Trash2 } from "lucide-react";
@@ -69,7 +69,7 @@ export function TaskForm({ subjects, taskId, defaultValues }: TaskFormProps) {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<TaskFormInput, unknown, TaskFormOutput>({
     resolver: zodResolver(createTaskSchema),
@@ -85,9 +85,9 @@ export function TaskForm({ subjects, taskId, defaultValues }: TaskFormProps) {
     },
   });
 
-  const status = watch("status");
-  const priority = watch("priority");
-  const subjectId = watch("subjectId");
+  const status = useWatch({ control, name: "status" });
+  const priority = useWatch({ control, name: "priority" });
+  const subjectId = useWatch({ control, name: "subjectId" });
 
   const onSubmit = async (data: CreateTaskInput) => {
     setServerError(null);
