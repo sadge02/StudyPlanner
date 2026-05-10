@@ -81,7 +81,7 @@ const TodaysBoard = ({ initialTasks }: Props) => {
         type="button"
         variant="outline"
         className="w-fit self-center px-4 text-xs shadow-sm"
-        onClick={() => router.push("/dashboard/todos")}
+        onClick={() => router.push("/dashboard/tasks/new")}
       >
         <Plus className="text-blue-600" /> Add Task
       </Button>
