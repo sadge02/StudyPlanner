@@ -22,7 +22,7 @@ export default async function DashboardPage() {
   const name = session?.user?.name ? `, ${session.user.name}` : "";
 
   return (
-    <div className="flex flex-col h-full p-6 gap-4">
+    <div className="flex flex-col h-full gap-4">
       <div>
         <p className="text-sm text-muted-foreground uppercase tracking-wide">
           {today.toLocaleDateString("en-US", {

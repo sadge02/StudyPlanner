@@ -83,7 +83,9 @@ export function useKanbanDnd(initialTasks: Task[], columns: Column[]) {
     const task = tasks.find((t) => t.id === taskId);
 
     if (task) {
-      const response = await updateTask(taskId, { status: task.status as TaskStatus });
+      const response = await updateTask(taskId, {
+        status: task.status as TaskStatus,
+      });
 
       if (response.success) {
         toast.success("Task status updated");

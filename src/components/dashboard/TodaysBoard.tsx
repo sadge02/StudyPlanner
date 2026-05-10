@@ -49,7 +49,7 @@ const TodaysBoard = ({ initialTasks }: Props) => {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 max-h-64 overflow-y-auto p-2">
+      <div className="flex flex-col gap-2 max-h-64 overflow-y-auto pb-1">
         {tasks.length === 0 && (
           <p className="text-sm text-muted-foreground">No tasks due today.</p>
         )}
