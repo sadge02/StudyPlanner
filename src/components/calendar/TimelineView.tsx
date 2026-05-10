@@ -214,7 +214,7 @@ export function TimelineView({
     setDragState(null);
 
     startTransition(async () => {
-      const response = await updateTask(taskId, { deadline: nextDeadline });
+      const response = await updateTask(taskId, { deadline: nextDeadline.toISOString() });
       if (!response.success) {
         setErrorMessage(response.message ?? "Failed to reschedule task");
         setDeadlineOverrides((current) => ({
