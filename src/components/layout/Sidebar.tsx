@@ -27,7 +27,12 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, exact: true },
+  {
+    label: "Dashboard",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+    exact: true,
+  },
   { label: "Calendar", href: "/dashboard/calendar", icon: Calendar },
   { label: "Tasks", href: "/dashboard/kanban", icon: SquareKanban },
   { label: "Projects", href: "/dashboard/projects", icon: FolderKanban },
@@ -175,38 +180,20 @@ export function Sidebar({
         aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         {collapsed ? (
-          <PanelLeft className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
+          <PanelLeft
+            className="h-5 w-5 shrink-0 text-muted-foreground"
+            aria-hidden
+          />
         ) : (
           <>
-            <PanelLeftClose className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
+            <PanelLeftClose
+              className="h-5 w-5 shrink-0 text-muted-foreground"
+              aria-hidden
+            />
             <span>Collapse</span>
           </>
         )}
       </button>
-    </div>
-  );
-
-  const settingsFooter = (
-    <div
-      className={cn(
-        "border-sidebar-border border-t p-4",
-        collapsed ? "flex justify-center px-2" : "px-4",
-      )}
-    >
-      <Link
-        href="/dashboard/settings"
-        onClick={() => onMobileOpenChange(false)}
-        className={cn(
-          "flex items-center rounded-md text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
-          collapsed ? "justify-center px-2 py-2" : "gap-3 px-3 py-2",
-        )}
-        title={collapsed ? "Settings" : undefined}
-      >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-          {sidebarInitial(user)}
-        </span>
-        {!collapsed && <span>Settings</span>}
-      </Link>
     </div>
   );
 
@@ -215,7 +202,9 @@ export function Sidebar({
       <div
         className={cn(
           "fixed inset-0 z-40 bg-black/50 transition-opacity duration-200 md:hidden",
-          mobileOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0",
+          mobileOpen
+            ? "pointer-events-auto opacity-100"
+            : "pointer-events-none opacity-0",
         )}
         aria-hidden={!mobileOpen}
         onClick={() => onMobileOpenChange(false)}
@@ -263,7 +252,6 @@ export function Sidebar({
 
         {navSection}
         {collapseToggle}
-        {settingsFooter}
       </aside>
     </>
   );

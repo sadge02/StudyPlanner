@@ -22,7 +22,6 @@ const SEGMENT_LABELS: Record<string, string> = {
   projects: "Projects",
   notes: "Notes",
   analytics: "Analytics",
-  settings: "Settings",
 };
 
 function formatSegment(seg: string) {
@@ -35,8 +34,9 @@ function segmentLabel(seg: string, parentSeg?: string) {
   const mapped = SEGMENT_LABELS[seg.toLowerCase()];
   if (mapped) return mapped;
   const looksLikeId =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(seg) ||
-    seg.length >= 18;
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      seg,
+    ) || seg.length >= 18;
   if (looksLikeId && parentSeg) {
     const parent = parentSeg.toLowerCase();
     if (parent === "subjects") return "Subject";
@@ -71,9 +71,7 @@ export function Navbar({
   const crumbs = buildBreadcrumbs(pathname);
 
   return (
-    <header
-      className="grid h-16 shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-border border-b bg-background px-4 sm:grid-cols-[minmax(0,1fr)_28rem_minmax(0,1fr)] sm:gap-6 sm:px-6"
-    >
+    <header className="grid h-16 shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-border border-b bg-background px-4 sm:grid-cols-[minmax(0,1fr)_28rem_minmax(0,1fr)] sm:gap-6 sm:px-6">
       <div className="flex min-w-0 items-center gap-2 sm:justify-self-start">
         <Button
           type="button"
@@ -98,7 +96,9 @@ export function Navbar({
                       aria-hidden
                     />
                   )}
-                  <li className={isLast ? "min-w-0 truncate" : "min-w-0 shrink-0"}>
+                  <li
+                    className={isLast ? "min-w-0 truncate" : "min-w-0 shrink-0"}
+                  >
                     {isLast ? (
                       <span className="block truncate">{crumb.label}</span>
                     ) : (
@@ -139,20 +139,6 @@ export function Navbar({
       <div className="col-start-2 flex shrink-0 items-center justify-self-end gap-1 sm:col-start-3 sm:space-x-4">
         <ActiveTimerIndicator initialSession={activeStudySession} />
         <ThemeToggle />
-
-        <button
-          type="button"
-          aria-label="Notifications — coming soon"
-          title="Notifications — coming soon"
-          className="relative cursor-pointer rounded-full p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-        >
-          <Bell className="h-5 w-5" aria-hidden />
-          <span
-            aria-hidden
-            className="absolute top-1.5 right-1.5 block h-2 w-2 rounded-full bg-blue-600 ring-2 ring-background"
-          />
-        </button>
-
         <div className="mx-2 hidden h-8 w-px bg-border sm:block" />
 
         <button
