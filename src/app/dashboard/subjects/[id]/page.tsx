@@ -48,18 +48,20 @@ export default async function SubjectDetailPage({
 
   return (
     <div className="p-4 sm:p-8 space-y-8">
+      
       <div>
-        <h1 className="text-2xl font-bold mb-6">Edit {subject.name}</h1>
-        <SubjectForm
-          subjectId={subject.id}
-          defaultValues={{
-            name: subject.name,
-            credits: subject.credits,
-            color: subject.color,
-          }}
-        />
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl font-bold">Tasks</h2>
+          <Button asChild>
+            <Link href={`/dashboard/tasks/new?subjectId=${subject.id}`}>
+              <CopyPlus size={18} />
+              Add Task
+            </Link>
+          </Button>
+        </div>
+        <TaskTable tasks={tasks} showSubject={false} />
       </div>
-
+      
       <div>
         <h2 className="text-xl font-bold mb-4">Statistics</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -93,17 +95,17 @@ export default async function SubjectDetailPage({
       </div>
 
       <div>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold">Tasks</h2>
-          <Button asChild>
-            <Link href={`/dashboard/tasks/new?subjectId=${subject.id}`}>
-              <CopyPlus size={18} />
-              Add Task
-            </Link>
-          </Button>
-        </div>
-        <TaskTable tasks={tasks} showSubject={false} />
+        <h1 className="text-2xl font-bold mb-6">Edit {subject.name}</h1>
+        <SubjectForm
+          subjectId={subject.id}
+          defaultValues={{
+            name: subject.name,
+            credits: subject.credits,
+            color: subject.color,
+          }}
+        />
       </div>
+  
     </div>
   );
 }
