@@ -51,8 +51,7 @@ export const mockTasks: Task[] = [
   },
 ];
 
-// Mock event — replace with: const response = await getNextEvent()
-const mockNextEvent: EventWithSubject = {
+export const mockNextEvent: EventWithSubject = {
   id: "event-1",
   title: "Data Structures",
   description: "Lecture with Prof. Aris • Room 302",

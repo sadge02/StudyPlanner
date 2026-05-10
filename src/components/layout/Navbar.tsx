@@ -2,7 +2,7 @@
 
 import { signOut } from "next-auth/react";
 import Link from "next/link";
-import { Bell, ChevronRight, Menu, Search, LogOut } from "lucide-react";
+import { ChevronRight, Menu, Search, LogOut } from "lucide-react";
 import { Fragment } from "react";
 import { usePathname } from "next/navigation";
 

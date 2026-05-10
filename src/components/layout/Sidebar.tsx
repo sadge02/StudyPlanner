@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
-import type { ShellUser } from "@/components/layout/AppShell";
 
 type NavItem = {
   label: string;
@@ -40,11 +39,6 @@ const navItems: NavItem[] = [
   { label: "Subjects", href: "/dashboard/subjects", icon: BookMarked },
   { label: "Analytics", href: "/dashboard/analytics", icon: LineChart },
 ];
-
-function sidebarInitial(user: ShellUser) {
-  const raw = user.name?.trim()?.[0] || user.email?.[0] || "?";
-  return raw.toUpperCase();
-}
 
 function BookLogo() {
   return (
@@ -118,7 +112,6 @@ function NavLinkRow({
 }
 
 type SidebarProps = {
-  user: ShellUser;
   collapsed: boolean;
   onCollapsedChange: (collapsed: boolean) => void;
   mobileOpen: boolean;
@@ -126,7 +119,6 @@ type SidebarProps = {
 };
 
 export function Sidebar({
-  user,
   collapsed,
   onCollapsedChange,
   mobileOpen,
