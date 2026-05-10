@@ -6,6 +6,7 @@ import { SubtaskList } from "@/components/tasks/SubtaskList";
 import Link from "next/link";
 import { CopyPlus } from "lucide-react";
 import type { TaskStatus } from "@/types";
+import { Button } from "@/components/ui/button";
 
 export default async function TaskDetailPage({
   params,
@@ -43,13 +44,12 @@ export default async function TaskDetailPage({
           <SubtaskList tasks={task.subTasks} />
         </div>
       )}
-      <Link
-        href={`/dashboard/tasks/new?parentId=${task.id}`}
-        className="mt-4 inline-flex items-center gap-2 rounded-md bg-brand hover:bg-brand-hover text-white px-4 py-2 font-medium text-sm shadow-md transition-colors"
-      >
-        <CopyPlus size={18} />
-        Add subtask
-      </Link>
+      <Button asChild className="mt-4">
+        <Link href={`/dashboard/tasks/new?parentId=${task.id}`}>
+          <CopyPlus size={18} />
+          Add subtask
+        </Link>
+      </Button>
     </div>
   );
 }

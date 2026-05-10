@@ -10,6 +10,20 @@ import { TASK_STATUS_OPTIONS } from "@/lib/constants";
 import type { TaskStatus, TaskWithSubject } from "@/types";
 import { useConfirm } from "@/components/ui/ConfirmDialog";
 
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const ALL_VALUE = "all";
+
 const PRIORITY_STYLES = {
   HIGH: { label: "High", color: "text-red-600 dark:text-red-400", icon: "!" },
   MEDIUM: { label: "Medium", color: "text-muted-foreground", icon: "—" },
@@ -83,11 +97,11 @@ export function TaskTable({
 
   const hasFilters = Boolean(subjectFilter || statusFilter || deadlineFilter);
   const changeSubjectFilter = (v: string) => {
-    setSubjectFilter(v);
+    setSubjectFilter(v === ALL_VALUE ? "" : v);
     setSelected(new Set());
   };
   const changeStatusFilter = (v: string) => {
-    setStatusFilter(v);
+    setStatusFilter(v === ALL_VALUE ? "" : v);
     setSelected(new Set());
   };
   const changeDeadlineFilter = (v: string) => {
@@ -101,11 +115,11 @@ export function TaskTable({
     setSelected(new Set());
   };
 
-  const toggle = (id: string) => {
+  const toggle = (id: string, checked: boolean) => {
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (checked) next.add(id);
+      else next.delete(id);
       return next;
     });
   };
@@ -184,61 +198,71 @@ export function TaskTable({
       <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
         <div className="flex flex-wrap items-end gap-3 border-b px-6 py-3">
           {showSubject && (
-            <div className="flex flex-col">
-              <label className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            <div className="flex flex-col gap-1">
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
                 Subject
-              </label>
-              <select
-                value={subjectFilter}
-                onChange={(e) => changeSubjectFilter(e.target.value)}
-                className="rounded-md border bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              </Label>
+              <Select
+                value={subjectFilter || ALL_VALUE}
+                onValueChange={changeSubjectFilter}
               >
-                <option value="">All</option>
-                {availableSubjects.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="h-8 min-w-[140px] text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_VALUE}>All</SelectItem>
+                  {availableSubjects.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
-          <div className="flex flex-col">
-            <label className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          <div className="flex flex-col gap-1">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">
               Due before
-            </label>
-            <input
+            </Label>
+            <Input
               type="date"
               value={deadlineFilter}
               onChange={(e) => changeDeadlineFilter(e.target.value)}
-              className="rounded-md border bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              className="h-8 text-sm"
             />
           </div>
-          <div className="flex flex-col">
-            <label className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          <div className="flex flex-col gap-1">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">
               Status
-            </label>
-            <select
-              value={statusFilter}
-              onChange={(e) => changeStatusFilter(e.target.value)}
-              className="rounded-md border bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            </Label>
+            <Select
+              value={statusFilter || ALL_VALUE}
+              onValueChange={changeStatusFilter}
             >
-              <option value="">All</option>
-              {TASK_STATUS_OPTIONS.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-8 min-w-[140px] text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_VALUE}>All</SelectItem>
+                {TASK_STATUS_OPTIONS.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>
+                    {s.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           {hasFilters && (
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={resetFilters}
-              className="ml-auto flex items-center gap-1 rounded-md border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
+              className="ml-auto"
             >
               <X size={14} />
               Clear filters
-            </button>
+            </Button>
           )}
         </div>
         <table className="w-full min-w-[640px] text-sm">
@@ -268,11 +292,12 @@ export function TaskTable({
                 <tr key={t.id} className="hover:bg-muted/50">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={selected.has(t.id)}
-                        onChange={() => toggle(t.id)}
-                        className="h-4 w-4 rounded border-input"
+                        onCheckedChange={(checked) =>
+                          toggle(t.id, checked === true)
+                        }
+                        aria-label={`Select task ${t.title}`}
                       />
                       <Link
                         href={`/dashboard/tasks/${t.id}`}
@@ -332,24 +357,24 @@ export function TaskTable({
           <span className="mr-2 text-sm text-muted-foreground">
             {selected.size} selected
           </span>
-          <button
+          <Button
             type="button"
             onClick={handleMarkDone}
             disabled={isPending}
-            className="flex items-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-md transition-colors hover:bg-green-700 disabled:opacity-50 dark:bg-green-700 dark:hover:bg-green-600"
+            className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
           >
             <CheckCircle2 size={18} />
             Mark as Done
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="destructive"
             onClick={handleDelete}
             disabled={isPending}
-            className="flex items-center gap-2 rounded-md bg-destructive px-4 py-2 text-sm font-medium text-white shadow-md transition-colors hover:bg-destructive/90 disabled:opacity-50"
           >
             <Trash2 size={18} />
             Delete
-          </button>
+          </Button>
         </div>
       )}
     </div>

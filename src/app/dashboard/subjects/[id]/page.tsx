@@ -5,6 +5,7 @@ import { getSubjectById } from "@/lib/actions/subject.actions";
 import { getUserTasks } from "@/lib/actions/task.actions";
 import { SubjectForm } from "@/components/subjects/SubjectForm";
 import { TaskTable } from "@/components/tasks/TaskTable";
+import { Button } from "@/components/ui/button";
 
 export default async function SubjectDetailPage({
   params,
@@ -94,13 +95,12 @@ export default async function SubjectDetailPage({
       <div>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-bold">Tasks</h2>
-          <Link
-            href={`/dashboard/tasks/new?subjectId=${subject.id}`}
-            className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-white shadow-md transition-colors hover:bg-brand-hover"
-          >
-            <CopyPlus size={18} />
-            Add Task
-          </Link>
+          <Button asChild>
+            <Link href={`/dashboard/tasks/new?subjectId=${subject.id}`}>
+              <CopyPlus size={18} />
+              Add Task
+            </Link>
+          </Button>
         </div>
         <TaskTable tasks={tasks} showSubject={false} />
       </div>
