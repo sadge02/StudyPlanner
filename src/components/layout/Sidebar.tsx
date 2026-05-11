@@ -14,6 +14,7 @@ import {
   PanelLeft,
   X,
   type LucideIcon,
+  SquareCheckBig,
 } from "lucide-react";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ const navItems: NavItem[] = [
   },
   { label: "Calendar", href: "/dashboard/calendar", icon: Calendar },
   { label: "Tasks", href: "/dashboard/kanban", icon: SquareKanban },
+  { label: "General Todos", href: "/dashboard/todos", icon: SquareCheckBig },
   { label: "Projects", href: "/dashboard/projects", icon: FolderKanban },
   { label: "Notes", href: "/dashboard/notes", icon: StickyNote },
   { label: "Subjects", href: "/dashboard/subjects", icon: BookMarked },
