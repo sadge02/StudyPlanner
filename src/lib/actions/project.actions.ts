@@ -120,9 +120,12 @@ export async function createProject(
       };
     }
 
+    const inviteCode = randomBytes(4).toString("hex").toUpperCase();
+
     const project = await prisma.project.create({
       data: {
         ...validatedData.data,
+        inviteCode,
         members: {
           create: {
             userId: session.user.id,
@@ -235,10 +238,10 @@ export async function joinProject(code: string): Promise<ApiResponse<Project>> {
       return { success: false, message: "Unauthorized" };
     }
 
-    const normalizedCode = code.trim().toUpperCase();
+    const trimmedCode = code.trim();
 
-    const project = await prisma.project.findUnique({
-      where: { inviteCode: normalizedCode },
+    const project = await prisma.project.findFirst({
+      where: { inviteCode: { equals: trimmedCode, mode: "insensitive" } },
     });
 
     if (!project) {

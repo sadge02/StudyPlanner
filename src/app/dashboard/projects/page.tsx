@@ -1,4 +1,5 @@
 import { CreateProjectButton } from "@/components/projects/CreateProjectButton";
+import { JoinProjectButton } from "@/components/projects/JoinProjectButton";
 import { ProjectsOverview } from "@/components/projects/ProjectsOverview";
 import { getUserProjectsOverview } from "@/lib/actions/project.actions";
 
@@ -19,7 +20,10 @@ export default async function ProjectsPage() {
           </p>
         </div>
 
-        <CreateProjectButton />
+        <div className="flex gap-2">
+          <JoinProjectButton />
+          <CreateProjectButton />
+        </div>
       </div>
 
       {!projectsResponse.success && projectsResponse.message ? (
