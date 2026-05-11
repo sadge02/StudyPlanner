@@ -1,18 +1,18 @@
-/**
- * Notes Page
- * M2 - Notes list and PDF viewer
- * 
- * TODO: Fetch all user notes
- * TODO: Display notes list/grid
- * TODO: Add subject filter dropdown
- * TODO: Add "Create Note" button with form
- * TODO: Show note preview
- * TODO: Add PDF viewer for fileUrl notes
- * TODO: Add edit and delete functionality
- * TODO: Show created date and last updated
- */
+import { getUserNotes } from "@/lib/actions/note.actions";
+import { getSubjects } from "@/lib/actions/subject.actions";
+import { NotesView } from "@/components/notes/NotesView";
+import type { NoteWithRelations } from "@/types";
 
-export default function NotesPage() {
-  // TODO: Render notes page
-  return <div>{/* TODO: Notes list */}</div>;
+export default async function NotesPage() {
+  const [notesRes, subjectsRes] = await Promise.all([
+    getUserNotes(),
+    getSubjects(),
+  ]);
+
+  const notes = notesRes.success
+    ? (notesRes.data as NoteWithRelations[] ?? [])
+    : [];
+  const subjects = subjectsRes.success ? subjectsRes.data ?? [] : [];
+
+  return <NotesView initialNotes={notes} subjects={subjects} />;
 }
