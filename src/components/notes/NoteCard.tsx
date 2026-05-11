@@ -97,8 +97,7 @@ export function NoteCard({
     const canPreview = canPreviewInBrowser(fileName);
 
     if (canPreview) {
-      const newWindow = window.open(note.fileUrl, "_blank", "noopener,noreferrer");
-      if (newWindow) newWindow.opener = null;
+      window.open(note.fileUrl, "_blank");
     } else {
       const link = document.createElement("a");
       link.href = note.fileUrl;
@@ -163,20 +162,26 @@ export function NoteCard({
                 {renderIcon()}
               </div>
 
-              <div className="min-w-0 flex-1">
-                <h3
-                  className="font-semibold text-sm text-foreground truncate cursor-pointer hover:text-brand transition-colors"
-                  onClick={() => {
-                    if (hasFile) {
-                      handleOpenFile();
-                    } else {
-                      onEdit(note);
-                    }
-                  }}
-                  title={note.title}
-                >
-                  {note.title}
-                </h3>
+                <div className="min-w-0 flex-1">
+                 {hasFile && note.fileUrl ? (
+                   <a
+                     href={note.fileUrl}
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     className="font-semibold text-sm text-foreground truncate hover:text-brand transition-colors block"
+                     title={note.title}
+                   >
+                     {note.title}
+                   </a>
+                 ) : (
+                   <h3
+                     className="font-semibold text-sm text-foreground truncate cursor-pointer hover:text-brand transition-colors"
+                     onClick={() => onEdit(note)}
+                     title={note.title}
+                   >
+                     {note.title}
+                   </h3>
+                 )}
 
                 {contentPreview && (
                   <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
