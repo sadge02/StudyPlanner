@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
-import { Calendar, Flag, Pen, Trash2 } from "lucide-react";
+import { Calendar, Pen, Trash2 } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -21,9 +21,9 @@ type KanbanCardProps = {
 };
 
 const priorityColor = {
-  HIGH: "text-red-500",
-  MEDIUM: "text-yellow-500",
-  LOW: "text-green-500",
+  HIGH: "bg-red-500",
+  MEDIUM: "bg-yellow-500",
+  LOW: "bg-green-500",
 };
 
 const KanbanCard = ({ task, onDelete }: KanbanCardProps) => {
@@ -71,7 +71,7 @@ const KanbanCard = ({ task, onDelete }: KanbanCardProps) => {
         ref={setNodeRef}
         style={style}
         {...attributes}
-        {...listeners}
+        // {...listeners}
         className="w-xs gap-2 cursor-grab active:cursor-grabbing shadow-sm"
       >
         <CardHeader>
@@ -104,10 +104,12 @@ const KanbanCard = ({ task, onDelete }: KanbanCardProps) => {
                 })
               : "No deadline set"}
           </div>
-          <Flag
-            size={15}
-            className={`ml-auto ${priorityColor[task.priority]}`}
-          />
+          <Badge
+            variant="secondary"
+            className={`text-xs shadow-sm ${priorityColor[task.priority]}`}
+          >
+            {task.priority}
+          </Badge>
         </CardContent>
       </Card>
 
