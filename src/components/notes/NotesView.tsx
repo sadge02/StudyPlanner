@@ -55,14 +55,12 @@ function groupNotesBySubject(
   notes.forEach((note) => {
     if (note.subjectId && groups.has(note.subjectId)) {
       groups.get(note.subjectId)!.notes.push(note);
-    } else if (!note.subjectId) {
+    } else {
       groups.get("uncategorized")!.notes.push(note);
     }
   });
 
-  const result = Array.from(groups.values()).filter(
-    (g) => g.notes.length > 0 || g.isUncategorized
-  );
+  const result = Array.from(groups.values());
 
   result.sort((a, b) => {
     if (a.isUncategorized) return -1;
@@ -186,46 +184,48 @@ export function NotesView({
         return;
       }
 
-      const newSubjectId = targetGroupId === "uncategorized" ? null : targetGroupId;
+       const newSubjectId = targetGroupId === "uncategorized" ? null : targetGroupId;
 
-      setNotes((prev) => {
-        const targetSubject = newSubjectId
-          ? subjects.find((s) => s.id === newSubjectId) || null
-          : null;
+       const notesBeforeMove = notes;
 
-        return prev.map((n) => {
-          if (n.id === noteId) {
-            return {
-              ...n,
-              subjectId: newSubjectId,
-              subject: targetSubject,
-            };
-          }
-          return n;
-        });
-      });
+       setNotes((prev) => {
+         const targetSubject = newSubjectId
+           ? subjects.find((s) => s.id === newSubjectId) || null
+           : null;
 
-      try {
-        const response = await updateNote(noteId, {
-          subjectId: newSubjectId || undefined,
-        });
+         return prev.map((n) => {
+           if (n.id === noteId) {
+             return {
+               ...n,
+               subjectId: newSubjectId,
+               subject: targetSubject,
+             };
+           }
+           return n;
+         });
+       });
 
-        if (response.success) {
-          const targetGroup = groups.find((g) => g.id === targetGroupId);
-          toast.success(`Note moved to ${targetGroup?.name || "folder"}`);
-        } else {
-          toast.error(response.message ?? "Failed to move note");
-          setNotes(initialNotes);
-        }
-      } catch {
-        toast.error("Failed to move note");
-        setNotes(initialNotes);
-      }
+       try {
+         const response = await updateNote(noteId, {
+           subjectId: newSubjectId === null ? "" : newSubjectId,
+         });
 
-      handleDragEnd();
-    },
-    [draggedNoteId, notes, subjects, groups, initialNotes, handleDragEnd]
-  );
+         if (response.success) {
+           const targetGroup = groups.find((g) => g.id === targetGroupId);
+           toast.success(`Note moved to ${targetGroup?.name || "folder"}`);
+         } else {
+           toast.error(response.message ?? "Failed to move note");
+           setNotes(notesBeforeMove);
+         }
+       } catch {
+         toast.error("Failed to move note");
+         setNotes(notesBeforeMove);
+       }
+
+       handleDragEnd();
+     },
+     [draggedNoteId, notes, subjects, groups, handleDragEnd]
+   );
 
   const handleDragOver = useCallback(
     (e: React.DragEvent, groupId: string) => {

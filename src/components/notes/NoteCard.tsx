@@ -46,7 +46,7 @@ export function NoteCard({
   onEdit,
   onDelete,
   isDragging,
-  draggable = true,
+  draggable = false,
   onDragStart,
 }: NoteCardProps) {
   const { confirm, dialog } = useConfirm();
@@ -97,7 +97,8 @@ export function NoteCard({
     const canPreview = canPreviewInBrowser(fileName);
 
     if (canPreview) {
-      window.open(note.fileUrl, "_blank");
+      const newWindow = window.open(note.fileUrl, "_blank", "noopener,noreferrer");
+      if (newWindow) newWindow.opener = null;
     } else {
       const link = document.createElement("a");
       link.href = note.fileUrl;

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { useState, useCallback, useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { X, File, Loader2, FileUp } from "lucide-react";
+import { X, Loader2, FileUp } from "lucide-react";
 import { createNoteSchema, type CreateNoteInput } from "@/schemas/note.schema";
 import type { NoteWithRelations, Subject, Note } from "@/types";
 import { createNote, updateNote } from "@/lib/actions/note.actions";
@@ -69,13 +69,6 @@ export function NoteDialog({
   const initialSubjectId = isEditing
     ? (note?.subjectId || UNCATEGORIZED_VALUE)
     : (defaultSubjectId || UNCATEGORIZED_VALUE);
-
-  const initialFileState = isEditing && note?.fileUrl
-    ? {
-        url: note.fileUrl,
-        name: note.title,
-      }
-    : null;
 
   const { startUpload } = useUploadThing("noteUploader", {
     onClientUploadComplete: (res) => {
@@ -144,7 +137,7 @@ export function NoteDialog({
         url: fileUrlValue,
         name: fileNameValue || (note && note.fileUrl ? note.title : "file"),
       }
-    : initialFileState;
+    : undefined;
 
   const handleClose = useCallback(() => {
     if (!isSubmitting) {
@@ -182,7 +175,7 @@ export function NoteDialog({
         }
 
         const input: CreateNoteInput = {
-          title: data.fileName && data.fileUrl ? data.fileName : data.title,
+          title: data.title,
           content: data.content || undefined,
           fileUrl: data.fileUrl,
           subjectId: actualSubjectId,

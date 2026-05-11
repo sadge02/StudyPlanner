@@ -169,6 +169,9 @@ export async function updateNote(
       revalidatePath(`/dashboard/projects/${existingNote.projectId}`);
     }
     if (note.subjectId) revalidatePath(`/dashboard/subjects/${note.subjectId}`);
+    if (existingNote.subjectId && existingNote.subjectId !== note.subjectId) {
+      revalidatePath(`/dashboard/subjects/${existingNote.subjectId}`);
+    }
 
     return { success: true, data: note as unknown as Note };
   } catch {
