@@ -25,8 +25,6 @@ export const metadata: Metadata = {
 /**
  * Root Layout
  * M4 - Global styles, providers, auth setup
- *
- * TODO: Add global error boundary
  */
 
 export default async function RootLayout({
