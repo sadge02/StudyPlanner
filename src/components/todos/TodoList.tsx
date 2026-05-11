@@ -111,7 +111,7 @@ const TodoList = ({ initialTasks }: Props) => {
   };
 
   return (
-    <div className="flex flex-col gap-6 p-0 md:p-6 pt-2 max-w-3xl">
+    <div className="flex flex-col gap-6 p-0 md:p-0 pt-2 max-w-3xl">
       {/* Quick add card */}
       <div className="rounded-lg border bg-card p-4 flex flex-col gap-3 shadow">
         <div className="flex items-center gap-2">

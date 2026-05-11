@@ -22,7 +22,7 @@ export function AppShell({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
-    <div className="flex h-[100dvh] overflow-hidden bg-background text-foreground">
+    <div className="flex h-dvh overflow-hidden bg-background text-foreground">
       <Sidebar
         collapsed={sidebarCollapsed}
         onCollapsedChange={setSidebarCollapsed}
