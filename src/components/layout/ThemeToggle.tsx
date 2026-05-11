@@ -44,11 +44,13 @@ export function ThemeToggle() {
       variant="ghost"
       size="icon-sm"
       className="shrink-0 text-muted-foreground hover:text-foreground"
-      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      aria-label={!mounted ? "Toggle theme" : (isDark ? "Switch to light mode" : "Switch to dark mode")}
       disabled={!mounted}
       onClick={() => void toggleTheme()}
     >
-      {isDark ? (
+      {!mounted ? (
+        <span className="size-5" aria-hidden />
+      ) : isDark ? (
         <Sun className="size-5" aria-hidden />
       ) : (
         <Moon className="size-5" aria-hidden />

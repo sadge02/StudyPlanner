@@ -2,7 +2,7 @@
 
 import { signOut } from "next-auth/react";
 import Link from "next/link";
-import { ChevronRight, Menu, Search, LogOut } from "lucide-react";
+import { ChevronRight, Menu, LogOut } from "lucide-react";
 import { Fragment } from "react";
 import { usePathname } from "next/navigation";
 
@@ -71,7 +71,7 @@ export function Navbar({
   const crumbs = buildBreadcrumbs(pathname);
 
   return (
-    <header className="grid h-16 shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-border border-b bg-background px-4 sm:grid-cols-[minmax(0,1fr)_28rem_minmax(0,1fr)] sm:gap-6 sm:px-6">
+    <header className="grid h-16 shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-border border-b bg-background px-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-6 sm:px-6">
       <div className="flex min-w-0 items-center gap-2 sm:justify-self-start">
         <Button
           type="button"
@@ -117,26 +117,7 @@ export function Navbar({
         </nav>
       </div>
 
-      <div className="hidden w-full min-w-0 sm:block sm:w-[28rem] sm:justify-self-center">
-        <div className="relative w-full">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <Search className="size-4 text-muted-foreground" aria-hidden />
-          </div>
-          <label htmlFor="nav-search" className="sr-only">
-            Search
-          </label>
-          <input
-            id="nav-search"
-            type="search"
-            placeholder="Search..."
-            aria-readonly="true"
-            readOnly
-            className="block w-full cursor-default rounded-full border border-input bg-muted/50 py-2 pr-3 pl-10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-          />
-        </div>
-      </div>
-
-      <div className="col-start-2 flex shrink-0 items-center justify-self-end gap-1 sm:col-start-3 sm:space-x-4">
+      <div className="flex shrink-0 items-center justify-self-end gap-1 space-x-4">
         <ActiveTimerIndicator initialSession={activeStudySession} />
         <ThemeToggle />
         <div className="mx-2 hidden h-8 w-px bg-border sm:block" />
