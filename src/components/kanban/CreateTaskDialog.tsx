@@ -27,7 +27,6 @@ import {
 import { Task, TaskPriority } from "@/types";
 import { createTask, updateTask } from "@/lib/actions/task.actions";
 import { toast } from "sonner";
-import { useEffect } from "react";
 
 type Props = {
   open: boolean;
