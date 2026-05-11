@@ -87,8 +87,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           user.password,
         );
 
-        console.log("PICO ", user);
-
         if (!isPasswordValid) {
           throw new Error("Invalid credentials");
         }
