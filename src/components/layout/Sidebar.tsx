@@ -34,7 +34,7 @@ const navItems: NavItem[] = [
     exact: true,
   },
   { label: "Calendar", href: "/dashboard/calendar", icon: Calendar },
-  { label: "Tasks", href: "/dashboard/kanban", icon: SquareKanban },
+  { label: "Kanban Board", href: "/dashboard/kanban", icon: SquareKanban },
   { label: "General Todos", href: "/dashboard/todos", icon: SquareCheckBig },
   { label: "Projects", href: "/dashboard/projects", icon: FolderKanban },
   { label: "Notes", href: "/dashboard/notes", icon: StickyNote },
@@ -209,7 +209,7 @@ export function Sidebar({
           "fixed inset-y-0 left-0 z-50 flex h-full shrink-0 flex-col border-sidebar-border bg-sidebar text-sidebar-foreground shadow-[4px_0_24px_rgb(0,0,0,0.06)] transition-[transform,width] duration-200 ease-out md:relative md:z-0 md:translate-x-0 dark:shadow-[4px_0_24px_rgb(0,0,0,0.2)] md:border-r",
           "w-[min(16rem,calc(100vw-2rem))]",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
-          collapsed ? "md:w-[4.75rem]" : "md:w-64",
+          collapsed ? "md:w-19" : "md:w-64",
         )}
       >
         <div className="flex h-16 shrink-0 items-center justify-between border-sidebar-border border-b px-6 md:hidden">

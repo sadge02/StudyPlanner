@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useRouter } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -9,10 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import TodoList from "../todos/TodoList";
 import KanbanBoard from "./KanbanBoard";
-import { LayoutGrid, ListTodo } from "lucide-react";
 import { Task } from "@/types";
+import { Separator } from "../ui/separator";
 
 type Project = {
   id: string;
@@ -22,16 +21,21 @@ type Project = {
 
 type Props = {
   projects: Project[];
+  initialProjectId: string;
 };
 
-const TasksPageOverview = ({ projects }: Props) => {
-  const [selectedProjectId, setSelectedProjectId] = useState(
-    projects[0]?.id ?? "",
-  );
+const TasksPageOverview = ({ projects, initialProjectId }: Props) => {
+  const router = useRouter();
+  const [selectedProjectId, setSelectedProjectId] = useState(initialProjectId);
 
   const selectedProject =
     projects.find((p) => p.id === selectedProjectId) ?? projects[0];
   const tasks = selectedProject?.tasks ?? [];
+
+  const handleProjectChange = (projectId: string) => {
+    setSelectedProjectId(projectId);
+    router.push(`?project=${projectId}`, { scroll: false });
+  };
 
   if (projects.length === 0) {
     return (
@@ -42,56 +46,36 @@ const TasksPageOverview = ({ projects }: Props) => {
   }
 
   return (
-    <div className="flex flex-col h-full md:p-6 gap-4 items-center">
-      <Tabs
-        defaultValue="kanban"
-        className="flex flex-col md:items-center gap-4 md:gap-8 w-full h-full"
-      >
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-3">
-          <TabsList className="h-11 shadow px-4">
-            <TabsTrigger
-              value="kanban"
-              className="px-3 md:px-6 h-8 text-sm gap-2"
-            >
-              <LayoutGrid size={16} className="text-blue-600" />
-              <span className="hidden sm:inline">Kanban Board</span>
-              <span className="sm:hidden">Kanban</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="todos"
-              className="px-3 md:px-6 h-8 text-sm gap-2"
-            >
-              <ListTodo size={16} className="text-blue-600" />
-              <span className="hidden sm:inline">General TODOs</span>
-              <span className="sm:hidden">TODOs</span>
-            </TabsTrigger>
-          </TabsList>
+    <div className="flex flex-col h-full gap-4">
+      <div className="flex w-full justify-center flex-col">
+        <h1 className="text-3xl font-bold">Kanban Board</h1>
+        <p className="text-md text-muted-foreground">
+          Drag and drop tasks between columns to update their status. Add custom
+          columns to fit your workflow. {selectedProjectId}
+        </p>
+      </div>
+      <Separator />
+      <div className="flex flex-row sm:flex-row gap-3">
+        <span className="text-lg">Select a project:</span>
+        <Select value={selectedProjectId} onValueChange={handleProjectChange}>
+          <SelectTrigger className="sm:w-64 shadow-sm">
+            <SelectValue placeholder="Select project" />
+          </SelectTrigger>
+          <SelectContent>
+            {projects.map((project) => (
+              <SelectItem key={project.id} value={project.id}>
+                {project.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-          <Select
-            value={selectedProjectId}
-            onValueChange={setSelectedProjectId}
-          >
-            <SelectTrigger className="w-full sm:w-64 shadow-sm">
-              <SelectValue placeholder="Select project" />
-            </SelectTrigger>
-            <SelectContent>
-              {projects.map((project) => (
-                <SelectItem key={project.id} value={project.id}>
-                  {project.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <TabsContent value="kanban" className="flex flex-col gap-4 md:gap-8">
-          <KanbanBoard initialTasks={tasks} projectId={selectedProjectId} />
-        </TabsContent>
-
-        <TabsContent value="todos" className="flex flex-col gap-4 md:gap-8">
-          <TodoList initialTasks={tasks} />
-        </TabsContent>
-      </Tabs>
+      <KanbanBoard
+        key={selectedProjectId}
+        initialTasks={tasks}
+        projectId={selectedProjectId}
+      />
     </div>
   );
 };
