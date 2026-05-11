@@ -31,7 +31,6 @@ const KanbanCard = ({ task, onDelete }: KanbanCardProps) => {
 
   const {
     attributes,
-    listeners,
     setNodeRef,
     transform,
     transition,
