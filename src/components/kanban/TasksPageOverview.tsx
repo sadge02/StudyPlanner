@@ -51,7 +51,7 @@ const TasksPageOverview = ({ projects, initialProjectId }: Props) => {
         <h1 className="text-3xl font-bold">Kanban Board</h1>
         <p className="text-md text-muted-foreground">
           Drag and drop tasks between columns to update their status. Add custom
-          columns to fit your workflow. {selectedProjectId}
+          columns to fit your workflow.
         </p>
       </div>
       <Separator />
