@@ -36,7 +36,11 @@ const KanbanBoard = ({ initialTasks, projectId }: Props) => {
   } = useKanbanDnd(initialTasks, initialColumns);
 
   const sensors = useSensors(
-    useSensor(MouseSensor),
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(TouchSensor, {
       activationConstraint: {
         delay: 250,

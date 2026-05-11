@@ -27,6 +27,7 @@ import {
 import { Task, TaskPriority } from "@/types";
 import { createTask, updateTask } from "@/lib/actions/task.actions";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
 type Props = {
   open: boolean;
@@ -112,13 +113,13 @@ const CreateTaskDialog = ({ open, onOpenChange, task, projectId }: Props) => {
             )}
           </div>
 
-          <div className="priority-deadline flex gap-4">
+          <div className="priority-deadline flex gap-4 flex-col">
             <div className="flex items-center gap-2">
               <label htmlFor="priority" className="text-sm font-medium">
                 Priority
               </label>
               <Select
-                defaultValue={"MEDIUM"}
+                defaultValue={task?.priority ?? "MEDIUM"}
                 name="priority"
                 onValueChange={(val) =>
                   setValue("priority", val as TaskPriority)
@@ -139,7 +140,7 @@ const CreateTaskDialog = ({ open, onOpenChange, task, projectId }: Props) => {
               <label htmlFor="deadline" className="text-sm font-medium">
                 Deadline
               </label>
-              <Input type="date" {...register("deadline")} />
+              <Input type="date" {...register("deadline")} className="w-fit" />
               {errors.deadline && (
                 <p className="text-xs text-red-500">
                   {errors.deadline.message}
