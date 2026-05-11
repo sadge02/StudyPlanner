@@ -71,7 +71,6 @@ const KanbanCard = ({ task, onDelete }: KanbanCardProps) => {
         ref={setNodeRef}
         style={style}
         {...attributes}
-        // {...listeners}
         className="w-xs gap-2 cursor-grab active:cursor-grabbing shadow-sm"
       >
         <CardHeader>
