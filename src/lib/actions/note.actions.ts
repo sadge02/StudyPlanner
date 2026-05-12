@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "../auth";
 import { prisma } from "../db";
 import { ApiResponse, Note } from "@/types";
-import { checkProjectAccess, getAllUserProjects } from "../utils/access";
+import { checkProjectAccess, getAllUserProjects } from "./access.actions";
 import {
   createNoteSchema,
   updateNoteSchema,

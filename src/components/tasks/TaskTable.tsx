@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Trash2, CheckCircle2, X } from "lucide-react";
 
 import { deleteTask, updateTask } from "@/lib/actions/task.actions";
-import { TASK_STATUS_OPTIONS } from "@/lib/constants";
+import { TASK_STATUS_OPTIONS } from "@/lib/utils/constants";
 import type { TaskStatus, TaskWithSubject } from "@/types";
 import { useConfirm } from "@/components/ui/ConfirmDialog";
 

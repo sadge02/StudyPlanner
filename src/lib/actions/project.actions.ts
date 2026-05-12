@@ -5,7 +5,7 @@ import { prisma } from "../db";
 import { z } from "zod";
 import { ApiResponse, Project, ProjectMember, ProjectOverview } from "@/types";
 import { revalidatePath } from "next/cache";
-import { checkProjectAdmin } from "../utils/access";
+import { checkProjectAdmin } from "./access.actions";
 import { randomBytes } from "crypto";
 
 const createProjectSchema = z.object({
