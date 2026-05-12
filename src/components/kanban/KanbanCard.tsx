@@ -66,7 +66,6 @@ const KanbanCard = ({ task, onDelete }: KanbanCardProps) => {
       />
     </div>
   );
-  console.log("task", task.endTime);
 
   return (
     <>
