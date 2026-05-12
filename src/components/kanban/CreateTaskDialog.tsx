@@ -31,7 +31,9 @@ import { toast } from "sonner";
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  task?: Task; // optional — if provided, dialog is in edit mode
+  task?: Task & {
+    endTime: string;
+  }; // optional — if provided, dialog is in edit mode
   projectId?: string;
 };
 

@@ -16,7 +16,9 @@ import { useState } from "react";
 import CreateTaskDialog from "./CreateTaskDialog";
 
 type KanbanCardProps = {
-  task: Task;
+  task: Task & {
+    endTime: string;
+  };
   onDelete?: (taskId: string) => void;
 };
 
@@ -64,6 +66,7 @@ const KanbanCard = ({ task, onDelete }: KanbanCardProps) => {
       />
     </div>
   );
+  console.log("task", task.endTime);
 
   return (
     <>
@@ -97,8 +100,8 @@ const KanbanCard = ({ task, onDelete }: KanbanCardProps) => {
         <CardContent className="flex items-center justify-between">
           <div className="flex gap-2 text-gray-500 text-sm">
             <Calendar size={18} />
-            {task.deadline
-              ? new Date(task.deadline).toLocaleDateString("en-GB", {
+            {task.endTime
+              ? new Date(task.endTime).toLocaleDateString("en-GB", {
                   day: "numeric",
                   month: "short",
                 })
@@ -116,7 +119,9 @@ const KanbanCard = ({ task, onDelete }: KanbanCardProps) => {
       <CreateTaskDialog
         open={editOpen}
         onOpenChange={setEditOpen}
-        task={task}
+        task={
+          task.endTime ? { ...task, deadline: new Date(task.endTime) } : task
+        }
       />
     </>
   );
