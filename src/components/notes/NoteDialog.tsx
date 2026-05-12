@@ -12,7 +12,7 @@ import {
   getFileCategory,
   getFileCategoryColor,
   renderFileIcon,
-} from "@/lib/file-utils";
+} from "@/lib/utils/file-utils";
 import { useUploadThing } from "@/lib/uploadthing";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

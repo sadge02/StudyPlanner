@@ -50,7 +50,7 @@ function revalidateTaskPaths() {
   revalidatePath("/dashboard/kanban");
   revalidatePath("/dashboard/subjects");
 }
-import { checkProjectAccess } from "../utils/access";
+import { checkProjectAccess } from "./access.actions";
 
 export async function getTodaysTasks(): Promise<ApiResponse<Task[]>> {
   try {

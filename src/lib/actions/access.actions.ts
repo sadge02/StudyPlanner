@@ -1,9 +1,6 @@
 import { prisma } from "../db";
 import { ProjectRole } from "@prisma/client";
 
-/**
- * Verifies if a user is a member of a project.
- */
 export async function checkProjectAccess(
   userId: string,
   projectId: string,
@@ -20,9 +17,6 @@ export async function checkProjectAccess(
   return !!member;
 }
 
-/**
- * Verifies if a user is admin of a project.
- */
 export async function checkProjectAdmin(
   userId: string,
   projectId: string,
@@ -39,9 +33,6 @@ export async function checkProjectAdmin(
   return member?.role === ProjectRole.ADMIN;
 }
 
-/**
- * Returns all project IDs the user belongs to.
- */
 export async function getAllUserProjects(userId: string): Promise<string[]> {
   const memberships = await prisma.projectMember.findMany({
     where: { userId },

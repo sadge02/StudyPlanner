@@ -12,7 +12,7 @@ import {
   type CreateTaskInput,
 } from "@/schemas";
 import { createTask, deleteTask, updateTask } from "@/lib/actions/task.actions";
-import { TASK_STATUS_OPTIONS } from "@/lib/constants";
+import { TASK_STATUS_OPTIONS } from "@/lib/utils/constants";
 import type { Subject } from "@/types";
 import { useConfirm } from "@/components/ui/ConfirmDialog";
 
