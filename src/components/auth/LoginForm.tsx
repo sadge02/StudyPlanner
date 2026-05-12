@@ -11,7 +11,7 @@ export function LoginForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -53,7 +53,6 @@ export function LoginForm() {
   return (
     <div className="w-full max-w-md p-6 sm:p-8 space-y-6 bg-white rounded-lg shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-blue-50/50 mx-auto">
       <div className="flex justify-center mb-4">
-        {/* Placeholder for Logo, using a similar blue icon */}
         <div className="bg-blue-600 p-2 rounded-md">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
         </div>
